@@ -112,9 +112,9 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "slide-in-right": "slide-in-right 0.3s ease-out",
-        "slide-in-left": "slide-in-left 0.3s ease-out",
-        "typing-bounce": "typing-bounce 1.4s infinite ease-in-out",
+        "slide-in-right": "slide-in-right 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "slide-in-left": "slide-in-left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "typing-bounce": "typing-bounce 1.2s infinite ease-in-out",
       },
     },
   },

@@ -14,7 +14,7 @@ export const TypingIndicator = ({ avatarUrl }: TypingIndicatorProps) => {
         </Avatar>
       )}
       
-      <div className="bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-[10px_10px_10px_0]">
+      <div className="bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-[10px_10px_10px_0] shadow-md backdrop-blur-sm">
         <div className="flex gap-1">
           <div className="w-2 h-2 rounded-full bg-white/60 animate-typing-bounce" style={{ animationDelay: "0ms" }} />
           <div className="w-2 h-2 rounded-full bg-white/60 animate-typing-bounce" style={{ animationDelay: "200ms" }} />

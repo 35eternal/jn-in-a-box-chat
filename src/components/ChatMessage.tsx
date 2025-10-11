@@ -1,14 +1,19 @@
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ChatMessageProps {
   message: string;
   isUser: boolean;
   timestamp: string;
   avatarUrl?: string;
+  status?: 'sending' | 'sent' | 'error';
+  onRetry?: () => void;
 }
 
-export const ChatMessage = ({ message, isUser, timestamp, avatarUrl }: ChatMessageProps) => {
+export const ChatMessage = memo(({ message, isUser, timestamp, avatarUrl, status, onRetry }: ChatMessageProps) => {
   return (
     <div
       className={`flex gap-2 mb-4 ${isUser ? "justify-end" : "justify-start"} ${
@@ -22,9 +27,9 @@ export const ChatMessage = ({ message, isUser, timestamp, avatarUrl }: ChatMessa
         </Avatar>
       )}
       
-      <div className="flex flex-col max-w-[75%]">
+      <div className="flex flex-col max-w-[85%] md:max-w-[75%]">
         <div
-          className={`px-4 py-2 ${
+          className={`px-4 py-3 shadow-md backdrop-blur-sm transition-all duration-200 hover:shadow-lg ${
             isUser
               ? "bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] text-white rounded-[10px_10px_0_10px]"
               : "bg-[rgba(0,0,0,0.3)] text-[rgba(255,255,255,0.9)] rounded-[10px_10px_10px_0]"
@@ -49,10 +54,39 @@ export const ChatMessage = ({ message, isUser, timestamp, avatarUrl }: ChatMessa
             </div>
           )}
         </div>
-        <span className={`text-xs text-muted-foreground mt-1 ${isUser ? "text-right" : "text-left"}`}>
-          {timestamp}
-        </span>
+        
+        <div className={`flex items-center gap-2 mt-1 ${isUser ? "justify-end" : "justify-start"}`}>
+          <span className="text-xs text-muted-foreground animate-in fade-in duration-500 delay-300">
+            {timestamp}
+          </span>
+          
+          {isUser && status === 'sending' && (
+            <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+          )}
+          
+          {isUser && status === 'sent' && (
+            <CheckCircle2 className="h-3 w-3 text-green-400" />
+          )}
+          
+          {isUser && status === 'error' && onRetry && (
+            <div className="flex items-center gap-1">
+              <AlertCircle className="h-3 w-3 text-red-400" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRetry}
+                className="h-auto p-0 text-xs text-red-400 hover:text-red-300 hover:bg-transparent"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  return prevProps.message === nextProps.message &&
+         prevProps.timestamp === nextProps.timestamp &&
+         prevProps.status === nextProps.status;
+});
