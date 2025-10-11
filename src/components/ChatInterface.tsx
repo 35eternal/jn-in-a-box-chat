@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -15,7 +16,6 @@ interface Message {
   status?: 'sending' | 'sent' | 'error';
 }
 
-const WEBHOOK_URL = "https://zaytoven.app.n8n.cloud/webhook/jn-in-a-box";
 const AVATAR_URL = "https://i.postimg.cc/9DmTgNzj/image.png";
 
 export const ChatInterface = () => {
@@ -86,29 +86,17 @@ export const ChatInterface = () => {
     setIsSending(true);
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('chat-proxy', {
+        body: {
           dateCode: getDateCode(),
           message: messageText,
-        }),
-        signal: controller.signal
+        },
       });
 
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        throw new Error(error.message || "Failed to communicate with AI");
       }
 
-      const data = await response.json();
-      
       if (!data || !Array.isArray(data) || !data[0]?.output) {
         throw new Error("Invalid response format");
       }
@@ -135,8 +123,8 @@ export const ChatInterface = () => {
         msg.id === userMessageId ? { ...msg, status: 'error' } : msg
       ));
       
-      const errorMessage = error instanceof Error && error.name === 'AbortError'
-        ? "Request timed out. Please try again."
+      const errorMessage = error instanceof Error 
+        ? error.message
         : "Failed to send message. Please try again.";
       
       toast({
