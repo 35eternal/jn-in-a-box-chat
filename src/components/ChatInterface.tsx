@@ -22,7 +22,7 @@ export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      text: "👋 Hello! I'm **JN-In-A-Box**, your AI assistant. How can I help you today?",
+      text: "👋 Hello! I'm **HD-Physique**, your AI assistant. How can I help you today?",
       isUser: false,
       timestamp: new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
@@ -158,7 +158,7 @@ export const ChatInterface = () => {
     <div className="flex items-center justify-center min-h-screen p-2 md:p-4 bg-gradient-to-br from-[hsl(var(--chat-bg-start))] to-[hsl(var(--chat-bg-end))]">
       <div className="w-full max-w-lg h-[90vh] md:h-[85vh] max-h-[650px] flex flex-col bg-gradient-to-b from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)] rounded-lg shadow-2xl border border-white/10">
         <ChatHeader 
-          name="JN-In-A-Box" 
+          name="HD-Physique" 
           status={isLoading ? "Thinking..." : "AI Assistant"} 
           avatarUrl={AVATAR_URL} 
         />

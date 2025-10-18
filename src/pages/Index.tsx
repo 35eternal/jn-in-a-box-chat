@@ -1,7 +1,7 @@
-import { ChatInterface } from "@/components/ChatInterface";
+import { MultiChatInterface } from "@/components/MultiChatInterface";
 
 const Index = () => {
-  return <ChatInterface />;
+  return <MultiChatInterface />;
 };
 
 export default Index;
