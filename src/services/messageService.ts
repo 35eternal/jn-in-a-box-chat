@@ -22,7 +22,7 @@ export const getChatMessages = async (chatId: string): Promise<Message[]> => {
       return [];
     }
 
-    return data || [];
+    return (data || []) as Message[];
   } catch (error) {
     console.error('Exception fetching messages:', error);
     return [];
@@ -51,7 +51,7 @@ export const createMessage = async (
       return null;
     }
 
-    return data;
+    return data as Message;
   } catch (error) {
     console.error('Exception creating message:', error);
     return null;
