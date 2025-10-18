@@ -148,8 +148,12 @@ const Login = () => {
 
       if (error) throw error;
       
+      // Auto-confirmed, user can now sign in
       setError('');
-      alert('Check your email to confirm your account!');
+      setActiveTab('signin');
+      setSignInEmail(signUpEmail);
+      setSignInPassword('');
+      alert('Account created! Please sign in.');
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
     } finally {
