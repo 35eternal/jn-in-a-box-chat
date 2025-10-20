@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminAuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
-  login: (password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -13,77 +14,98 @@ interface AdminAuthProviderProps {
   children: ReactNode;
 }
 
-const ADMIN_TOKEN_KEY = 'admin_auth_token';
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123'; // Default for development
-
 export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Check for existing auth token on mount
+  // Check admin status on mount and when auth state changes
   useEffect(() => {
-    console.log('[AdminAuth] Checking for existing token on mount...');
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
-    console.log('[AdminAuth] Token from localStorage:', token ? 'Found' : 'Not found');
+    checkAdminStatus();
     
-    if (token) {
-      // Verify token is valid (simple check - in production, you'd validate with backend)
-      try {
-        console.log('[AdminAuth] Attempting to decode token...');
-        const tokenData = JSON.parse(atob(token));
-        console.log('[AdminAuth] Decoded token data:', tokenData);
-        
-        const expiresAt = tokenData.expiresAt;
-        const currentTime = Date.now();
-        
-        console.log('[AdminAuth] Token expires at:', new Date(expiresAt).toLocaleString());
-        console.log('[AdminAuth] Current time:', new Date(currentTime).toLocaleString());
-        console.log('[AdminAuth] Token valid:', expiresAt && currentTime < expiresAt);
-        
-        if (expiresAt && currentTime < expiresAt) {
-          console.log('[AdminAuth] Token is valid, setting isAdmin to true');
-          setIsAdmin(true);
-        } else {
-          console.log('[AdminAuth] Token expired, clearing it');
-          localStorage.removeItem(ADMIN_TOKEN_KEY);
-        }
-      } catch (error) {
-        console.error('[AdminAuth] Error parsing token:', error);
-        // Invalid token format, clear it
-        localStorage.removeItem(ADMIN_TOKEN_KEY);
-      }
-    }
-    
-    // Token validation complete, set loading to false
-    console.log('[AdminAuth] Token validation complete, setting isLoading to false');
-    setIsLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAdminStatus();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (password: string): Promise<boolean> => {
-    // Simulate async authentication (in production, this would call your backend)
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (password === ADMIN_PASSWORD) {
-          // Generate a simple token (in production, this would come from backend)
-          const tokenData = {
-            authenticated: true,
-            timestamp: Date.now(),
-            expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-          };
-          const token = btoa(JSON.stringify(tokenData));
-          
-          localStorage.setItem(ADMIN_TOKEN_KEY, token);
-          setIsAdmin(true);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 300); // Simulate network delay
-    });
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsAdmin(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if user has admin role
+      const { data: roles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (error) {
+        console.log('[AdminAuth] No admin role found:', error.message);
+        setIsAdmin(false);
+      } else if (roles) {
+        console.log('[AdminAuth] Admin role confirmed');
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error('[AdminAuth] Error checking admin status:', error);
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('[AdminAuth] Login error:', error.message);
+        return false;
+      }
+
+      if (!data.user) {
+        return false;
+      }
+
+      // Check if user has admin role
+      const { data: roles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (roleError || !roles) {
+        console.log('[AdminAuth] User is not an admin');
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      setIsAdmin(true);
+      return true;
+    } catch (error) {
+      console.error('[AdminAuth] Login exception:', error);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setIsAdmin(false);
   };
 

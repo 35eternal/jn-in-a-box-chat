@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Lock } from "lucide-react";
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAdminAuth();
@@ -18,10 +19,10 @@ const AdminLogin = () => {
     e.preventDefault();
     
     // Validation
-    if (!password.trim()) {
+    if (!email.trim() || !password.trim()) {
       toast({
         title: "Validation Error",
-        description: "Password cannot be empty",
+        description: "Email and password are required",
         variant: "destructive",
       });
       return;
@@ -30,7 +31,7 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(password);
+      const success = await login(email, password);
       
       if (success) {
         toast({
@@ -41,7 +42,7 @@ const AdminLogin = () => {
       } else {
         toast({
           title: "Authentication Failed",
-          description: "Invalid admin password",
+          description: "Invalid credentials or insufficient permissions",
           variant: "destructive",
         });
         setPassword("");
@@ -77,6 +78,21 @@ const AdminLogin = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="email" className="text-white">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                disabled={isLoading}
+                className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50 focus-visible:ring-2 focus-visible:ring-[hsl(164,65%,50%)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="password" className="text-white">
                 Password
               </Label>
@@ -85,15 +101,14 @@ const AdminLogin = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                placeholder="Enter your password"
                 disabled={isLoading}
                 className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50 focus-visible:ring-2 focus-visible:ring-[hsl(164,65%,50%)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                autoFocus
               />
             </div>
             <Button
               type="submit"
-              disabled={isLoading || !password.trim()}
+              disabled={isLoading || !email.trim() || !password.trim()}
               className="w-full bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white font-semibold py-5 active:scale-98 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
