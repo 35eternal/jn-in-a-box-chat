@@ -50,15 +50,34 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
+## Operational Guardrails
 
-This project is built with:
+The screenshot provided defines the core guardrails for day-to-day work on this codebase:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Do not override any working backend logic unless explicitly asked to do so.
+- Do not remove or rename any existing Supabase fields, even if they appear unused.
+- Do not modify database schemas, edge functions, or RLS policies unless the task explicitly requires it.
+- Do not assume something is broken without validating it against the live database or function logs.
+- Do not delete UI components or styles unless they are explicitly marked as “Deprecated”.
+
+Keep these constraints in mind when proposing or reviewing changes, especially when working outside of Lovable’s automated scaffolding.
+
+## Git Workflow (Production & Development)
+
+To support reliable deployments, adopt a two-branch workflow in GitHub:
+
+1. `production` (protected): Only deployable, reviewed code should land here. Require pull requests, status checks, and code review before merging.
+2. `development`: Integrate day-to-day work here. Feature branches (e.g., `feature/private-chat-fix`) branch off `development` and merge back via pull requests after review and automated checks.
+
+Deployment flow:
+- Merge feature branches into `development` once they pass CI.
+- After validation in staging, open a pull request from `development` into `production` for the release.
+- Tag production releases (e.g., `v1.3.0`) after merging to simplify rollbacks.
+
+Automations to consider:
+- Enable branch protection rules for both branches (require PR reviews, status checks).
+- Configure CI to run on pull requests targeting either branch.
+- Optionally, auto-deploy `production` to your live environment while `development` deploys to staging.
 
 ## How can I deploy this project?
 
