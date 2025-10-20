@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage } from "./ChatMessage";
 import { TypingIndicator } from "./TypingIndicator";
+import { PrivateChatIndicator } from "./PrivateChatIndicator";
 import { Sidebar } from "./Sidebar";
 import { PersonalizationModal } from "./PersonalizationModal";
 import { OnboardingModal } from "./OnboardingModal";
@@ -556,17 +557,14 @@ export const MultiChatInterface = () => {
               </DropdownMenu>
             </div>
 
-            {isPrivateMode && (
-              <div className="bg-orange-900/20 border-b border-orange-500 px-4 py-2 text-center text-sm text-orange-200">
-                🔒 Private Chat - This conversation won't be saved to your history
-              </div>
-            )}
-
             <div
               className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 chat-scrollbar"
               aria-label="Chat messages"
               aria-live="polite"
             >
+              {/* Private chat indicator */}
+              {isPrivateMode && <PrivateChatIndicator isPrivate={true} />}
+              
               {/* Show intro card for new chats */}
               {messages.length === 0 && showIntroCard && (
                 <div className="max-w-4xl mx-auto mt-8">

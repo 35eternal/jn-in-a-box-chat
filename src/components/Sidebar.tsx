@@ -4,9 +4,23 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquarePlus, Settings, LogOut, ChevronLeft, Menu, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Chat, getUserChats, createChat } from '@/services/chatService';
+import { Chat, getUserChats, deleteChat } from '@/services/chatService';
 import { formatDistanceToNow } from 'date-fns';
 import { resetOnboarding } from '@/utils/onboardingHelpers';
+import { ChatContextMenu } from '@/components/ChatContextMenu';
+import { AdminAccessButton } from '@/components/AdminAccessButton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { updateChatTitle } from '@/services/chatService';
+import { toast } from '@/hooks/use-toast';
 
 interface SidebarProps {
   currentChatId: string | null;
@@ -21,6 +35,9 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
   const [chats, setChats] = useState<Chat[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [selectedChatForRename, setSelectedChatForRename] = useState<Chat | null>(null);
+  const [newChatTitle, setNewChatTitle] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -49,6 +66,68 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       onNewChat();
     } catch (err) {
       console.error('Error in handleNewChat:', err);
+    }
+  };
+
+  const handleRenameChat = (chatId: string) => {
+    const chat = chats.find(c => c.id === chatId);
+    if (chat) {
+      setSelectedChatForRename(chat);
+      setNewChatTitle(chat.title);
+      setIsRenameDialogOpen(true);
+    }
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!selectedChatForRename || !newChatTitle.trim()) return;
+
+    const success = await updateChatTitle(selectedChatForRename.id, newChatTitle);
+    if (success) {
+      toast({
+        title: "Success",
+        description: "Chat renamed successfully",
+      });
+      setIsRenameDialogOpen(false);
+      setSelectedChatForRename(null);
+      setNewChatTitle('');
+      loadChats();
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to rename chat",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this chat? This action cannot be undone.');
+    if (!confirmed) return;
+
+    const success = await deleteChat(chatId);
+    if (success) {
+      toast({
+        title: "Success",
+        description: "Chat deleted successfully",
+      });
+      
+      // If we deleted the current chat, switch to a different one or create new
+      if (currentChatId === chatId) {
+        const remainingChats = chats.filter(c => c.id !== chatId);
+        if (remainingChats.length > 0) {
+          onChatSelect(remainingChats[0].id);
+        } else {
+          onNewChat();
+        }
+      }
+      
+      loadChats();
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete chat",
+        variant: "destructive",
+      });
     }
   };
 
@@ -140,21 +219,28 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                 </h3>
                 <div className="space-y-1">
                   {recent.map((chat) => (
-                    <Button
+                    <ChatContextMenu
                       key={chat.id}
-                      variant="ghost"
-                      onClick={() => onChatSelect(chat.id)}
-                      className={`w-full justify-start text-left hover:bg-white/10 ${
-                        currentChatId === chat.id ? 'bg-white/10' : ''
-                      }`}
+                      chatId={chat.id}
+                      chatTitle={chat.title}
+                      onRename={handleRenameChat}
+                      onDelete={handleDeleteChat}
                     >
-                      <div className="flex-1 overflow-hidden">
-                        <div className="text-white text-sm truncate">{chat.title}</div>
-                        <div className="text-white/40 text-xs">
-                          {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
+                      <Button
+                        variant="ghost"
+                        onClick={() => onChatSelect(chat.id)}
+                        className={`w-full justify-start text-left hover:bg-white/10 ${
+                          currentChatId === chat.id ? 'bg-white/10' : ''
+                        }`}
+                      >
+                        <div className="flex-1 overflow-hidden">
+                          <div className="text-white text-sm truncate">{chat.title}</div>
+                          <div className="text-white/40 text-xs">
+                            {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
+                          </div>
                         </div>
-                      </div>
-                    </Button>
+                      </Button>
+                    </ChatContextMenu>
                   ))}
                 </div>
               </div>
@@ -167,21 +253,28 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                 </h3>
                 <div className="space-y-1">
                   {older.map((chat) => (
-                    <Button
+                    <ChatContextMenu
                       key={chat.id}
-                      variant="ghost"
-                      onClick={() => onChatSelect(chat.id)}
-                      className={`w-full justify-start text-left hover:bg-white/10 ${
-                        currentChatId === chat.id ? 'bg-white/10' : ''
-                      }`}
+                      chatId={chat.id}
+                      chatTitle={chat.title}
+                      onRename={handleRenameChat}
+                      onDelete={handleDeleteChat}
                     >
-                      <div className="flex-1 overflow-hidden">
-                        <div className="text-white text-sm truncate">{chat.title}</div>
-                        <div className="text-white/40 text-xs">
-                          {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
+                      <Button
+                        variant="ghost"
+                        onClick={() => onChatSelect(chat.id)}
+                        className={`w-full justify-start text-left hover:bg-white/10 ${
+                          currentChatId === chat.id ? 'bg-white/10' : ''
+                        }`}
+                      >
+                        <div className="flex-1 overflow-hidden">
+                          <div className="text-white text-sm truncate">{chat.title}</div>
+                          <div className="text-white/40 text-xs">
+                            {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
+                          </div>
                         </div>
-                      </div>
-                    </Button>
+                      </Button>
+                    </ChatContextMenu>
                   ))}
                 </div>
               </div>
@@ -192,6 +285,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
       {/* Footer */}
       <div className="p-4 border-t border-white/10 space-y-2">
+        <AdminAccessButton />
         <Button
           variant="ghost"
           onClick={onPersonalize}
@@ -235,6 +329,56 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
           </Button>
         </div>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent className="bg-gradient-to-b from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Rename Chat</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Enter a new name for this chat
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="chat-title" className="text-white">
+                Chat Title
+              </Label>
+              <Input
+                id="chat-title"
+                value={newChatTitle}
+                onChange={(e) => setNewChatTitle(e.target.value)}
+                placeholder="Enter chat title"
+                className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleRenameSubmit();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRenameDialogOpen(false);
+                setSelectedChatForRename(null);
+                setNewChatTitle('');
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRenameSubmit}
+              className="bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white"
+            >
+              Rename
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

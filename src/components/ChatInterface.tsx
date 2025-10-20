@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage } from "./ChatMessage";
 import { TypingIndicator } from "./TypingIndicator";
+import { PrivateChatIndicator } from "./PrivateChatIndicator";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
@@ -168,6 +169,8 @@ export const ChatInterface = () => {
           aria-label="Chat messages"
           aria-live="polite"
         >
+          <PrivateChatIndicator isPrivate={false} />
+          
           {messages.map((message) => (
             <ChatMessage
               key={message.id}

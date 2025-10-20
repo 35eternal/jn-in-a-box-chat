@@ -31,13 +31,13 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-[hsl(var(--chat-bg-start))] to-[hsl(var(--chat-bg-end))]">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
         {/* Header Card */}
         <Card className="bg-gradient-to-b from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)] border border-white/10 shadow-2xl">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)]">
+                <div className="p-3 rounded-full bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] shadow-lg">
                   <Shield className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -45,14 +45,14 @@ const Admin = () => {
                     Admin Dashboard
                   </CardTitle>
                   <CardDescription className="text-white/70 text-lg">
-                    Welcome, Admin!
+                    Manage your application settings
                   </CardDescription>
                 </div>
               </div>
               <Button
                 onClick={handleLogout}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-white/10 transition-all"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
