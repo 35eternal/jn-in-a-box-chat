@@ -30,6 +30,7 @@ import {
   updatePersonalization,
   getUserChats,
 } from "@/services/chatService";
+import { UserMetadata } from "@/types/database";
 import {
   getChatMessages,
   createMessage,
@@ -63,9 +64,11 @@ export const MultiChatInterface = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isPrivateMode, setIsPrivateMode] = useState(false);
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
-  const [userMetadata, setUserMetadata] = useState<any>(null);
+  const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const hasAttemptedAutoCreate = useRef(false);
 
   // Load user metadata
   useEffect(() => {
@@ -173,11 +176,7 @@ export const MultiChatInterface = () => {
   };
 
   const handleNewChat = async () => {
-    console.log('🔴 1. handleNewChat called, private mode:', isPrivateMode);
-    console.log('🔴 2. User ID:', user?.id);
-
     if (!user?.id) {
-      console.error('❌ No user ID - cannot create chat');
       toast({
         title: "Error",
         description: "Please log in first",
@@ -186,14 +185,15 @@ export const MultiChatInterface = () => {
       return;
     }
 
-    try {
-      // Don't check if user exists - just rely on the trigger
-      // If user doesn't exist, the trigger will create them
-      // If they do exist, we just proceed to create the chat
-      console.log('🔴 3. Creating chat directly (relying on handle_new_user trigger)');
+    if (isCreatingChat) {
+      console.log('Chat creation already in progress, skipping...');
+      return;
+    }
 
+    setIsCreatingChat(true);
+    
+    try {
       if (isPrivateMode) {
-        console.log('🔴 4. Creating temporary private chat (not saved to DB)');
         const tempChat: Chat = {
           id: `temp-${Date.now()}`,
           user_id: user.id,
@@ -203,45 +203,35 @@ export const MultiChatInterface = () => {
           updated_at: new Date().toISOString(),
           is_private: true
         };
-        console.log('🔴 5. Setting temp chat as current');
         setCurrentChat(tempChat);
         setMessages([]);
         setShowIntroCard(true);
-        console.log('✅ Private chat created successfully');
       } else {
-        console.log('🔴 4. Calling createChat with user.id:', user.id);
         const newChat = await createChat(user.id);
-        console.log('🔴 5. createChat returned:', newChat);
 
         if (!newChat) {
-          console.error('❌ createChat returned null');
-          throw new Error('Failed to create chat - no data returned');
+          throw new Error('Failed to create chat. Please check your connection and try again.');
         }
 
-        console.log('🔴 6. Setting current chat ID:', newChat.id);
         setCurrentChat(newChat);
         setMessages([]);
         setShowIntroCard(true);
-        
-        console.log('🔴 7. Triggering refresh...');
         setRefreshTrigger(prev => prev + 1);
         
-        console.log('✅ Chat created successfully:', newChat.id);
         toast({
           title: "Success",
           description: "New chat created!",
         });
       }
     } catch (error: any) {
-      console.error('❌ FULL ERROR in handleNewChat:', error);
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      console.error('Error details:', error.details);
+      console.error('Error creating chat:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create chat",
+        description: error.message || "Failed to create chat. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsCreatingChat(false);
     }
   };
   
@@ -253,94 +243,60 @@ export const MultiChatInterface = () => {
   };
 
   // Auto-create first chat if user has completed onboarding but has no chats
+  // This effect runs only once per session using a ref to prevent infinite loops
   useEffect(() => {
-    console.log('🟡 Auto-create useEffect triggered');
-    console.log('🟡 Conditions:', {
-      hasUser: !!user,
-      userId: user?.id,
-      onboardingOpen,
-      hasCheckedOnboarding
-    });
+    if (!user || onboardingOpen || hasCheckedOnboarding || hasAttemptedAutoCreate.current) {
+      return;
+    }
     
     const autoCreateFirstChat = async () => {
-      if (!user || onboardingOpen || hasCheckedOnboarding) {
-        console.log('🟡 Skipping auto-create:', {
-          hasUser: !!user,
-          onboardingOpen,
-          hasCheckedOnboarding
-        });
-        return;
-      }
-      
-      console.log('🟡 Proceeding with auto-create check');
+      hasAttemptedAutoCreate.current = true;
       
       try {
-        console.log('🟡 Checking onboarding status...');
         const completed = await hasCompletedOnboarding(user.id);
-        console.log('🟡 Onboarding completed:', completed);
         
         if (!completed) {
-          console.log('🟡 Onboarding not completed, marking as checked');
           setHasCheckedOnboarding(true);
           return;
         }
         
-        console.log('🟡 Checking for existing chats...');
         const { data: existingChats, error: chatsError } = await supabase
           .from('chats')
           .select('id')
           .eq('user_id', user.id)
-          .eq('is_private', false)
+          .or('is_private.is.null,is_private.eq.false')
           .limit(1);
         
-        console.log('🟡 Existing chats query result:', { existingChats, chatsError });
-        
         if (chatsError) {
-          console.error('❌ Failed to check existing chats:', chatsError);
+          console.error('Failed to check existing chats:', chatsError);
           setHasCheckedOnboarding(true);
           return;
         }
         
         if (!existingChats || existingChats.length === 0) {
-          console.log('🟢 No chats found, auto-creating first chat...');
+          console.log('No chats found, auto-creating first chat...');
           
           const newChat = await createChat(user.id);
-          console.log('🟢 Auto-create result:', newChat);
           
           if (newChat) {
-            console.log('🟢 Setting auto-created chat as current:', newChat.id);
             setCurrentChat(newChat);
             setMessages([]);
             setShowIntroCard(true);
             setRefreshTrigger(prev => prev + 1);
-            console.log('✅ First chat auto-created successfully');
-          } else {
-            console.error('❌ Auto-create returned null');
           }
-        } else {
-          console.log('🟡 User already has chats:', existingChats.length);
         }
         
-        console.log('🟡 Marking onboarding as checked');
         setHasCheckedOnboarding(true);
       } catch (error) {
-        console.error('❌ Error in auto-create first chat:', error);
-        console.error('Error details:', {
-          message: error instanceof Error ? error.message : 'Unknown error',
-          code: (error as any).code,
-          details: (error as any).details
-        });
+        console.error('Error in auto-create:', error);
         setHasCheckedOnboarding(true);
       }
     };
     
-    console.log('🟡 Setting 500ms timer for auto-create...');
-    const timer = setTimeout(autoCreateFirstChat, 500);
-    return () => {
-      console.log('🟡 Cleaning up auto-create timer');
-      clearTimeout(timer);
-    };
-  }, [user, onboardingOpen]);
+    // Small delay to allow other effects to settle
+    const timer = setTimeout(autoCreateFirstChat, 300);
+    return () => clearTimeout(timer);
+  }, [user, onboardingOpen, hasCheckedOnboarding]);
 
   const getCurrentTimestamp = () => {
     return new Date().toLocaleTimeString("en-US", {

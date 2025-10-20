@@ -50,6 +50,7 @@ export const createChat = async (
       .insert({
         user_id: userId,
         title: title,
+        is_private: false,
       })
       .select()
       .single();
@@ -63,6 +64,7 @@ export const createChat = async (
     return {
       ...data,
       personalization: parsePersonalizationData(data.personalization),
+      is_private: data.is_private ?? false,
     };
   } catch (error) {
     chatLogger.error('Exception creating chat', error);
@@ -77,7 +79,7 @@ export const getUserChats = async (userId: string): Promise<Chat[]> => {
       .from('chats')
       .select('*')
       .eq('user_id', userId)
-      .eq('is_private', false)
+      .or('is_private.is.null,is_private.eq.false')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -88,6 +90,7 @@ export const getUserChats = async (userId: string): Promise<Chat[]> => {
     return (data || []).map(chat => ({
       ...chat,
       personalization: parsePersonalizationData(chat.personalization),
+      is_private: chat.is_private ?? false,
     }));
   } catch (error) {
     chatLogger.error('Exception fetching chats', error);
@@ -112,6 +115,7 @@ export const getChatById = async (chatId: string): Promise<Chat | null> => {
     return {
       ...data,
       personalization: parsePersonalizationData(data.personalization),
+      is_private: data.is_private ?? false,
     };
   } catch (error) {
     chatLogger.error('Exception fetching chat', error);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquarePlus, Settings, LogOut, ChevronLeft, Menu, RotateCcw } from 'lucide-react';
+import { MessageSquarePlus, Settings, LogOut, ChevronLeft, Menu, RotateCcw, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Chat, getUserChats, deleteChat } from '@/services/chatService';
 import { formatDistanceToNow } from 'date-fns';
@@ -38,6 +38,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedChatForRename, setSelectedChatForRename] = useState<Chat | null>(null);
   const [newChatTitle, setNewChatTitle] = useState('');
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -131,6 +132,25 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
     }
   };
 
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+
+    setIsSigningOut(true);
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+      const message = error instanceof Error ? error.message : 'Failed to sign out. Please try again.';
+      toast({
+        title: 'Sign out failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
   const groupChatsByDate = () => {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -205,11 +225,18 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       {/* Chat List */}
       <ScrollArea className="flex-1 px-2">
         {isLoading && chats.length === 0 ? (
-          <div className="flex items-center justify-center p-8">
-            <div className="text-white/50">Loading...</div>
+          <div className="space-y-2 py-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="px-2">
+                <div className="h-16 bg-white/5 rounded animate-pulse" />
+              </div>
+            ))}
           </div>
         ) : chats.length === 0 ? (
-          <div className="p-4 text-center text-white/50">No chats yet</div>
+          <div className="p-6 text-center">
+            <div className="text-white/50 mb-2">No chats yet</div>
+            <div className="text-white/30 text-xs">Create your first chat to get started</div>
+          </div>
         ) : (
           <div className="space-y-4 py-4">
             {recent.length > 0 && (
@@ -321,11 +348,16 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
           <Button
             variant="ghost"
             size="icon"
-            onClick={signOut}
+            onClick={handleSignOut}
             className="text-white hover:bg-white/10 ml-2"
             title="Sign out"
+            disabled={isSigningOut}
           >
-            <LogOut className="h-4 w-4" />
+            {isSigningOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
