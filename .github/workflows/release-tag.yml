@@ -1,0 +1,31 @@
+name: Release Tag
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive next tag
+        id: semver
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          IFS='.' read -r major minor patch <<< "${latest_tag#v}"
+          patch=$((patch + 1))
+          echo "next=v${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag
+        run: |
+          git tag "${{ steps.semver.outputs.next }}"
+          git push origin "${{ steps.semver.outputs.next }}"

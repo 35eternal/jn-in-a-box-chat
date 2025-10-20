@@ -79,6 +79,31 @@ Automations to consider:
 - Configure CI to run on pull requests targeting either branch.
 - Optionally, auto-deploy `production` to your live environment while `development` deploys to staging.
 
+## GitHub Configuration Checklist
+
+To make the most of the new branching model, apply these settings in the repository:
+
+- **Branch protection**  
+  - `production`: require pull requests, at least one approving review, and passing status checks.  
+  - `development`: require pull requests and passing status checks; allow auto-merge for green PRs if desired.  
+  - Enable branch auto-deletion for merged feature branches.
+
+- **Default branch**  
+  - Keep `main` as legacy baseline or switch the repo default to `development` if you want new PRs to target it automatically.
+
+- **Feature and hotfix branches**  
+  - Use short-lived branches named `feature/<scope>` or `fix/<ticket>` off `development`.  
+  - For emergencies, create `hotfix/<issue>` from `production`, then merge the fix back into both `production` and `development`.
+
+- **Environments & secrets**  
+  - Define GitHub environments (`staging`, `production`) with required reviewers before deploys.  
+  - Store environment-specific secrets (Supabase keys, AI credentials) per environment.
+
+- **Automation ideas**  
+  - GitHub Actions workflow to run lint/test/build on every PR.  
+  - Release tagging Action when merging `development` into `production`.  
+  - Dependabot or Renovate for keeping dependencies up to date.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/7fd5a25d-88b8-437a-8d32-4a6b932b41af) and click on Share -> Publish.

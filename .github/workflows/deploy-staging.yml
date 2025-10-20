@@ -1,0 +1,21 @@
+name: Deploy Staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/development'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Placeholder deploy step
+        run: |
+          echo "Staging deployment placeholder."
+          echo "Configure credentials/secrets and replace this step with actual deployment logic."
