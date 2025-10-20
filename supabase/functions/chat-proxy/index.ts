@@ -1,159 +1,182 @@
+/* eslint-disable */
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Initialize Supabase client with service role for database access
 const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
 );
 
-// Fallback webhook in case database query fails or returns no webhooks
-const FALLBACK_WEBHOOK = 'https://zaytoven.app.n8n.cloud/webhook/hd-operator';
+const FALLBACK_WEBHOOK = "https://zaytoven.app.n8n.cloud/webhook/hd-operator";
+
+const payloadSchema = z.object({
+  dateCode: z.string().trim().max(32).optional(),
+  message: z.string().trim().min(1).max(4000),
+  system_prompt: z.string().trim().min(1).max(4000).optional(),
+  chat_id: z.string().uuid().optional(),
+  user_id: z.string().uuid(),
+});
+
+function jsonResponse(status: number, body: Record<string, unknown>) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
-    const { dateCode, message, system_prompt, chat_id, user_id } = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse(401, { error: "Missing or invalid authorization header." });
+    }
 
-    console.log("Processing chat request:", { 
-      dateCode, 
-      message, 
-      chat_id, 
-      user_id,
-      has_system_prompt: !!system_prompt 
-    });
+    const accessToken = authHeader.slice("Bearer ".length).trim();
+    const { data: authData, error: authError } = await supabase.auth.getUser(accessToken);
 
-    // Try to fetch active webhooks from database
-    let webhooks: any[] = [];
+    if (authError || !authData?.user) {
+      console.warn(`[chat-proxy] [${requestId}] Failed to validate JWT`, authError?.message);
+      return jsonResponse(401, { error: "Invalid authentication token." });
+    }
+
+    const parsedBody = payloadSchema.safeParse(await req.json());
+    if (!parsedBody.success) {
+      console.warn(`[chat-proxy] [${requestId}] Payload validation failed`, parsedBody.error.issues);
+      return jsonResponse(400, { error: "Invalid request payload." });
+    }
+
+    const { dateCode, message, system_prompt, chat_id, user_id } = parsedBody.data;
+
+    if (authData.user.id !== user_id) {
+      console.warn(`[chat-proxy] [${requestId}] User mismatch. Token user: ${authData.user.id}, payload user: ${user_id}`);
+      return jsonResponse(403, { error: "Forbidden." });
+    }
+
+    if (chat_id) {
+      const { data: chatRecord, error: chatError } = await supabase
+        .from("chats")
+        .select("id, user_id")
+        .eq("id", chat_id)
+        .single();
+
+      if (chatError || !chatRecord) {
+        console.warn(`[chat-proxy] [${requestId}] Chat not found or inaccessible. chat_id=${chat_id}`);
+        return jsonResponse(404, { error: "Chat not found." });
+      }
+
+      if (chatRecord.user_id !== user_id) {
+        console.warn(`[chat-proxy] [${requestId}] Chat ownership mismatch. chat_id=${chat_id}, owner=${chatRecord.user_id}`);
+        return jsonResponse(403, { error: "Forbidden." });
+      }
+    }
+
+    let webhooks: Array<{ id: string; name: string; url: string; priority: number }> = [];
     let useFallback = false;
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('webhooks')
-        .select('*')
-        .eq('is_active', true)
-        .order('priority', { ascending: true });
+      const { data, error } = await supabase
+        .from("webhooks")
+        .select("id, name, url, priority")
+        .eq("is_active", true)
+        .order("priority", { ascending: true });
 
-      if (fetchError) {
-        console.warn("⚠️ Error fetching webhooks from database:", fetchError.message);
-        console.log("→ Falling back to hardcoded webhook");
+      if (error) {
+        console.warn(`[chat-proxy] [${requestId}] Error fetching webhooks`, error.message);
         useFallback = true;
       } else if (!data || data.length === 0) {
-        console.warn("⚠️ No active webhooks found in database");
-        console.log("→ Falling back to hardcoded webhook");
+        console.warn(`[chat-proxy] [${requestId}] No active webhooks found; using fallback`);
         useFallback = true;
       } else {
         webhooks = data;
-        console.log(`✓ Using ${webhooks.length} webhook(s) from database`);
       }
-    } catch (dbError) {
-      console.error("⚠️ Database query exception:", dbError);
-      console.log("→ Falling back to hardcoded webhook");
+    } catch (fetchErr) {
+      console.error(`[chat-proxy] [${requestId}] Exception fetching webhooks`, fetchErr);
       useFallback = true;
     }
 
-    // Use fallback if database approach failed
     if (useFallback) {
-      webhooks = [{
-        id: 'fallback',
-        name: 'Fallback Webhook',
-        url: FALLBACK_WEBHOOK,
-        is_active: true,
-        priority: 1,
-      }];
-      console.log(`→ Using fallback webhook: ${FALLBACK_WEBHOOK}`);
+      webhooks = [
+        {
+          id: "fallback",
+          name: "Fallback Webhook",
+          url: FALLBACK_WEBHOOK,
+          priority: 1,
+        },
+      ];
     }
 
-    // Try each webhook in priority order until one succeeds
+    console.log(
+      `[chat-proxy] [${requestId}] Processing request for user ${user_id} with ${webhooks.length} webhook(s)`,
+    );
+
     let lastError: Error | null = null;
 
     for (const webhook of webhooks) {
       try {
-        console.log(`Trying webhook: ${webhook.name} (${webhook.url}) [Priority: ${webhook.priority}]`);
+        console.log(
+          `[chat-proxy] [${requestId}] Invoking webhook ${webhook.id} (priority ${webhook.priority})`,
+        );
 
         const response = await fetch(webhook.url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             dateCode,
             message,
-            system_prompt: system_prompt || "You are HD-Physique AI assistant.",
-            chat_id: chat_id || null,
-            user_id: user_id || null,
+            system_prompt: system_prompt ?? "You are HD-Physique AI assistant.",
+            chat_id: chat_id ?? null,
+            user_id,
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Webhook returned ${response.status}: ${response.statusText}`);
+          throw new Error(`HTTP ${response.status}`);
         }
 
-        // Read response body once as text to avoid "Body already consumed" error
         const responseText = await response.text();
-        console.log(`Raw response from "${webhook.name}":`, responseText.substring(0, 200) + '...');
-        
-        // Try to parse as JSON
-        let data;
+        let payload;
+
         try {
-          data = JSON.parse(responseText);
-          console.log(`✓ Webhook "${webhook.name}" succeeded with valid JSON`);
-          console.log("Parsed webhook response:", data);
-        } catch (jsonError) {
-          // JSON parsing failed - log the error and use raw text as fallback
-          console.error(`⚠️ JSON parsing failed for webhook "${webhook.name}"`);
-          console.error("JSON parse error:", jsonError instanceof Error ? jsonError.message : String(jsonError));
-          console.error("Raw response body:", responseText);
-          
-          // Check if we got any text
-          if (responseText && responseText.trim()) {
-            // Wrap raw text in proper format
-            console.log("→ Using raw text response as fallback");
-            data = [{
-              output: responseText.substring(0, 5000) // Limit to 5000 chars
-            }];
+          payload = JSON.parse(responseText);
+        } catch {
+          if (responseText.trim()) {
+            payload = [{ output: responseText.substring(0, 5000) }];
           } else {
-            throw new Error("Empty response from webhook");
+            throw new Error("Empty response body");
           }
         }
 
-        return new Response(JSON.stringify(data), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        console.error(`✗ Webhook "${webhook.name}" failed:`, lastError.message);
-        // Continue to next webhook
+        console.log(`[chat-proxy] [${requestId}] Webhook ${webhook.id} succeeded`);
+        return jsonResponse(200, payload);
+      } catch (webhookError) {
+        lastError = webhookError instanceof Error ? webhookError : new Error(String(webhookError));
+        console.error(
+          `[chat-proxy] [${requestId}] Webhook ${webhook.id} failed`,
+          lastError.message,
+        );
       }
     }
 
-    // If we got here, all webhooks failed
-    console.error("❌ All webhooks failed to respond");
-    throw new Error(`All AI services are currently unavailable. Please try again in a moment. (Last error: ${lastError?.message || 'Unknown error'})`);
+    console.error(`[chat-proxy] [${requestId}] All webhooks failed`);
+    throw lastError ?? new Error("All AI services are currently unavailable.");
   } catch (error) {
-    console.error("Error in chat-proxy:", error);
-
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-
-    return new Response(
-      JSON.stringify({
-        error: errorMessage,
-        details: "Failed to communicate with n8n webhook",
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      },
-    );
+    console.error(`[chat-proxy] [${requestId}] Fatal error`, error instanceof Error ? error.message : error);
+    return jsonResponse(500, {
+      error: "AI service is temporarily unavailable.",
+      request_id: requestId,
+    });
   }
 });

@@ -1,5 +1,17 @@
 # Critical Bug Fixes - October 20, 2025
 
+## 6. **Security Hardening (RLS & Edge Function)**
+### Improvements
+- Created migration `20251020153000_lockdown_webhooks.sql` to revoke legacy anonymous access on `webhooks` and enforce policy auditing.
+- Updated edge function `chat-proxy` to validate JWT-derived user IDs, enforce chat ownership, and sanitize logs/error responses.
+- Added strict request validation (`zod`) and fallback-safe webhook invocation with limited response logging.
+
+### Follow-up
+- Run new migrations (`supabase db push`).
+- Deploy updated chat-proxy function via `supabase functions deploy chat-proxy`.
+- Use Supabase dashboard to enable leaked password protection (Auth → Settings → Passwords).
+
+
 ## 4. **Historical Chats Hidden / Buttons Non-Responsive**
 ### Root Cause
 - `is_private` column added later, leaving legacy rows with `NULL`.
