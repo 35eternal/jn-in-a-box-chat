@@ -369,14 +369,25 @@ export const MultiChatInterface = () => {
       const systemPrompt = buildSystemPrompt();
 
       // Send to AI
+      const payload: {
+        dateCode: string;
+        message: string;
+        system_prompt: string;
+        user_id: string;
+        chat_id?: string;
+      } = {
+        dateCode: getDateCode(),
+        message: messageText,
+        system_prompt: systemPrompt,
+        user_id: user.id,
+      };
+
+      if (!currentChat.is_private) {
+        payload.chat_id = currentChat.id;
+      }
+
       const { data, error } = await supabase.functions.invoke("chat-proxy", {
-        body: {
-          dateCode: getDateCode(),
-          message: messageText,
-          system_prompt: systemPrompt,
-          chat_id: currentChat.id,
-          user_id: user.id,
-        },
+        body: payload,
       });
 
       if (error) {
