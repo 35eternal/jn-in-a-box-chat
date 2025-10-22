@@ -214,6 +214,7 @@ export const WebhookManager = () => {
 
   const openAddDialog = () => {
     resetForm();
+    setFormErrors({});
     setIsAddDialogOpen(true);
   };
 
