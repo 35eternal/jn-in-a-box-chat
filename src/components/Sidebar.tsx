@@ -4,11 +4,21 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquarePlus, Settings, LogOut, ChevronLeft, Menu, RotateCcw, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Chat, getUserChats, deleteChat } from '@/services/chatService';
+import { Chat, getUserChats, deleteChat, updateChatTitle } from '@/services/chatService';
 import { formatDistanceToNow } from 'date-fns';
 import { resetOnboarding } from '@/utils/onboardingHelpers';
 import { ChatContextMenu } from '@/components/ChatContextMenu';
 import { AdminAccessButton } from '@/components/AdminAccessButton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +29,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { updateChatTitle } from '@/services/chatService';
 import { toast } from '@/hooks/use-toast';
 
 interface SidebarProps {
