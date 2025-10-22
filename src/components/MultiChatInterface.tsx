@@ -62,13 +62,18 @@ export const MultiChatInterface = () => {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [showIntroCard, setShowIntroCard] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isPrivateMode, setIsPrivateMode] = useState(false);
+  const [isPrivatePreference, setIsPrivatePreference] = useState(false);
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasAttemptedAutoCreate = useRef(false);
+
+  const isPrivateChat = Boolean(currentChat?.is_private);
+  const isPrivateModeActive = isPrivateChat || isPrivatePreference;
+  const privateModeLabel = isPrivateChat ? "Private" : isPrivatePreference ? "Private next" : "Normal";
+  const PrivateModeIcon = isPrivateModeActive ? Lock : Unlock;
 
   // Load user metadata
   useEffect(() => {
@@ -193,7 +198,7 @@ export const MultiChatInterface = () => {
     setIsCreatingChat(true);
     
     try {
-      if (isPrivateMode) {
+      if (isPrivatePreference || isPrivateChat) {
         const tempChat: Chat = {
           id: `temp-${Date.now()}`,
           user_id: user.id,
@@ -494,29 +499,30 @@ export const MultiChatInterface = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
-                    {isPrivateMode ? (
-                      <><Lock className="h-4 w-4" /> Private</>
-                    ) : (
-                      <><Unlock className="h-4 w-4" /> Normal</>
-                    )}
+                    <>
+                      <PrivateModeIcon className="h-4 w-4" />
+                      {privateModeLabel}
+                    </>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuItem 
-                    onClick={() => setIsPrivateMode(!isPrivateMode)}
-                    className="gap-2 cursor-pointer"
+                  <DropdownMenuItem
+                    onClick={() => setIsPrivatePreference((prev) => !prev)}
+                    className="gap-3 cursor-pointer"
                   >
-                    <input 
-                      type="checkbox" 
-                      checked={isPrivateMode}
-                      onChange={(e) => setIsPrivateMode(e.target.checked)}
+                    <input
+                      type="checkbox"
+                      checked={isPrivatePreference}
+                      onChange={(event) => setIsPrivatePreference(event.target.checked)}
                       className="cursor-pointer"
                     />
                     <div>
-                      <div className="font-semibold">Private Mode</div>
+                      <div className="font-semibold">Start new chats in private mode</div>
                       <div className="text-xs text-muted-foreground">
-                        Chats won't be saved to history
+                        {isPrivateChat
+                          ? "This conversation is incognito and won't be saved."
+                          : "Current chat will be saved to history."}
                       </div>
                     </div>
                   </DropdownMenuItem>
@@ -530,7 +536,7 @@ export const MultiChatInterface = () => {
               aria-live="polite"
             >
               {/* Private chat indicator */}
-              {isPrivateMode && <PrivateChatIndicator isPrivate={true} />}
+              {isPrivateChat && <PrivateChatIndicator isPrivate />}
               
               {/* Show intro card for new chats */}
               {messages.length === 0 && showIntroCard && (

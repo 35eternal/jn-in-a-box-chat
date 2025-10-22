@@ -1,22 +1,30 @@
 import {
-  Fragment,
   ReactNode,
+  cloneElement,
+  isValidElement,
   useCallback,
-  useEffect,
-  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
+import { Button } from "@/components/ui/button";
 import {
-  Edit3,
-  FolderPlus,
-  Search,
-  Settings as SettingsIcon,
-  Share2,
-  Star,
-  Trash2,
-} from "lucide-react";
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { Edit3, FolderPlus, MoreVertical, Star, Trash2 } from "lucide-react";
 import "./ChatContextMenu.css";
 
 interface ChatContextMenuProps {
@@ -27,33 +35,16 @@ interface ChatContextMenuProps {
   children: ReactNode;
 }
 
+type ActionVariant = "default" | "danger";
+
 interface ActionItem {
   key: string;
   label: string;
   icon: ReactNode;
-  meta?: string;
+  shortcut?: string;
+  variant?: ActionVariant;
   handler: () => void;
 }
-
-interface ActionSection {
-  id: string;
-  label: string;
-  variant?: "default" | "danger";
-  items: ActionItem[];
-}
-
-const clampHue = (value: number) => {
-  if (Number.isNaN(value)) return 0;
-  if (value < 0) return 0;
-  if (value > 360) return 360;
-  return value;
-};
-
-const createHuePair = () => {
-  const base = clampHue(120 + Math.floor(Math.random() * 240));
-  const accentBase = base - 80 + (Math.floor(Math.random() * 60) - 30);
-  return { base, accent: clampHue(accentBase) };
-};
 
 export const ChatContextMenu = ({
   chatId,
@@ -62,19 +53,8 @@ export const ChatContextMenu = ({
   onDelete,
   children,
 }: ChatContextMenuProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const hueSeedRef = useRef(createHuePair());
-  const [hue1, setHue1] = useState(hueSeedRef.current.base);
-  const [hue2, setHue2] = useState(hueSeedRef.current.accent);
-
-  const menuRef = useRef<HTMLElement | null>(null);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleStar = useCallback(() => {
     console.info("Star chat:", chatId);
@@ -84,387 +64,175 @@ export const ChatContextMenu = ({
     onRename(chatId);
   }, [chatId, onRename]);
 
-  const handleShare = useCallback(() => {
-    console.info("Share summary for chat:", chatId);
-  }, [chatId]);
-
   const handleAddToProject = useCallback(() => {
     console.info("Add to project:", chatId);
-  }, [chatId]);
-
-  const handleReview = useCallback(() => {
-    console.info("Open chat settings:", chatId);
   }, [chatId]);
 
   const handleDelete = useCallback(() => {
     onDelete(chatId);
   }, [chatId, onDelete]);
 
-  const sections: ActionSection[] = useMemo(
+  const actions = useMemo<ActionItem[]>(
     () => [
       {
-        id: "suggestions",
-        label: "Quick actions",
-        items: [
-          {
-            key: "rename",
-            label: "Rename chat",
-            icon: <Edit3 className="h-4 w-4" />,
-            meta: "⌘ R",
-            handler: handleRename,
-          },
-          {
-            key: "star",
-            label: "Star chat",
-            icon: <Star className="h-4 w-4" />,
-            meta: "Shift + S",
-            handler: handleStar,
-          },
-          {
-            key: "share",
-            label: "Share summary",
-            icon: <Share2 className="h-4 w-4" />,
-            meta: "Coming soon",
-            handler: handleShare,
-          },
-        ],
+        key: "star",
+        label: "Star",
+        icon: <Star className="h-4 w-4" aria-hidden="true" />,
+        shortcut: "Shift + S",
+        handler: handleStar,
       },
       {
-        id: "settings",
-        label: "Manage chat",
-        items: [
-          {
-            key: "add-project",
-            label: "Add to project",
-            icon: <FolderPlus className="h-4 w-4" />,
-            handler: handleAddToProject,
-          },
-          {
-            key: "review",
-            label: "Open chat settings",
-            icon: <SettingsIcon className="h-4 w-4" />,
-            handler: handleReview,
-          },
-        ],
+        key: "rename",
+        label: "Rename",
+        icon: <Edit3 className="h-4 w-4" aria-hidden="true" />,
+        shortcut: "⌘ R",
+        handler: handleRename,
       },
       {
-        id: "danger",
-        label: "Danger zone",
+        key: "add-project",
+        label: "Add to project",
+        icon: <FolderPlus className="h-4 w-4" aria-hidden="true" />,
+        handler: handleAddToProject,
+      },
+      {
+        key: "delete",
+        label: "Delete",
+        icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
         variant: "danger",
-        items: [
-          {
-            key: "delete",
-            label: "Delete chat",
-            icon: <Trash2 className="h-4 w-4" />,
-            handler: handleDelete,
-          },
-        ],
+        handler: handleDelete,
       },
     ],
-    [handleAddToProject, handleDelete, handleRename, handleReview, handleShare, handleStar],
+    [handleAddToProject, handleDelete, handleRename, handleStar],
   );
 
-  const actionMap = useMemo(() => {
-    const map = new Map<string, ActionItem>();
-    sections.forEach((section) => {
-      section.items.forEach((item) => map.set(item.key, item));
-    });
-    return map;
-  }, [sections]);
-
-  const filteredSections = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) {
-      return sections;
+  const renderedTrigger = useMemo(() => {
+    if (!isValidElement(children)) {
+      return children;
     }
 
-    return sections
-      .map((section) => {
-        const items = section.items.filter((item) => {
-          const inLabel = item.label.toLowerCase().includes(term);
-          const inMeta = item.meta?.toLowerCase().includes(term);
-          return inLabel || inMeta;
-        });
-        return { ...section, items };
-      })
-      .filter((section) => section.items.length > 0);
-  }, [searchTerm, sections]);
+    return cloneElement(children, {
+      className: cn("chat-context-trigger-button", children.props.className),
+    });
+  }, [children]);
 
-  const filteredKeys = useMemo(
-    () => filteredSections.flatMap((section) => section.items.map((item) => item.key)),
-    [filteredSections],
-  );
+  const isMenuOpen = contextMenuOpen || dropdownOpen;
 
-  const closeMenu = useCallback(() => {
-    setIsOpen(false);
-    setSearchTerm("");
-    setSelectedKey(null);
-  }, []);
-
-  const handleContextMenu = useCallback((event: React.MouseEvent<HTMLSpanElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const { clientX, clientY } = event;
-    setPosition({ x: clientX, y: clientY });
-    setSearchTerm("");
-    setSelectedKey(null);
-    setIsOpen(true);
-  }, []);
-
-  const handleMenuKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLElement>) => {
-      if (!isOpen) return;
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeMenu();
-        return;
-      }
-
-      if (event.key === "Tab") {
-        event.preventDefault();
-        return;
-      }
-
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-        event.preventDefault();
-        if (!filteredKeys.length) return;
-
-        const currentIndex = selectedKey ? filteredKeys.indexOf(selectedKey) : -1;
-        const offset = event.key === "ArrowDown" ? 1 : -1;
-        const nextIndex =
-          currentIndex === -1
-            ? 0
-            : (currentIndex + offset + filteredKeys.length) % filteredKeys.length;
-
-        const nextKey = filteredKeys[nextIndex];
-        setSelectedKey(nextKey);
-
-        const nextElement = menuRef.current?.querySelector<HTMLLIElement>(
-          `li[data-action-key="${nextKey}"]`,
+  const renderDropdownItems = () => {
+    const nodes: ReactNode[] = [];
+    actions.forEach((action, index) => {
+      if (action.variant === "danger" && index !== 0) {
+        nodes.push(
+          <DropdownMenuSeparator
+            key={`dropdown-separator-${action.key}`}
+            className="chat-action-separator"
+          />,
         );
-        nextElement?.focus();
       }
 
-      if (event.key === "Enter" && selectedKey) {
-        const action = actionMap.get(selectedKey);
-        if (action) {
-          event.preventDefault();
-          action.handler();
-          closeMenu();
-        }
-      }
-    },
-    [actionMap, closeMenu, filteredKeys, isOpen, selectedKey],
-  );
-
-  const handleActionSelect = useCallback(
-    (item: ActionItem) => {
-      item.handler();
-      closeMenu();
-    },
-    [closeMenu],
-  );
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (!menuRef.current?.contains(target)) {
-        closeMenu();
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeMenu();
-      }
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [closeMenu, isOpen]);
-
-  useLayoutEffect(() => {
-    if (!isOpen || !menuRef.current) return;
-
-    const frame = requestAnimationFrame(() => {
-      const menu = menuRef.current;
-      if (!menu) return;
-
-      const rect = menu.getBoundingClientRect();
-      const paddingX = 30;
-      const paddingY = 20;
-      const { innerWidth, innerHeight } = window;
-
-      let nextX = position.x;
-      let nextY = position.y;
-
-      if (nextX + rect.width > innerWidth - paddingX) {
-        nextX = Math.max(paddingX, innerWidth - rect.width - paddingX);
-      }
-      if (nextY + rect.height > innerHeight - paddingY) {
-        nextY = Math.max(paddingY, innerHeight - rect.height - paddingY);
-      }
-      if (nextX < paddingX) {
-        nextX = paddingX;
-      }
-      if (nextY < paddingY) {
-        nextY = paddingY;
-      }
-
-      if (nextX !== position.x || nextY !== position.y) {
-        setPosition({ x: nextX, y: nextY });
-      }
+      nodes.push(
+        <DropdownMenuItem
+          key={`dropdown-${action.key}`}
+          className={cn("chat-action-item", action.variant && `chat-action-item--${action.variant}`)}
+          onSelect={(event) => {
+            event.preventDefault();
+            action.handler();
+            setDropdownOpen(false);
+          }}
+        >
+          {action.icon}
+          <span>{action.label}</span>
+          {action.shortcut ? (
+            <DropdownMenuShortcut className="chat-action-shortcut">
+              {action.shortcut}
+            </DropdownMenuShortcut>
+          ) : null}
+        </DropdownMenuItem>,
+      );
     });
+    return nodes;
+  };
 
-    return () => cancelAnimationFrame(frame);
-  }, [isOpen, position.x, position.y]);
+  const renderContextItems = () => {
+    const nodes: ReactNode[] = [];
+    actions.forEach((action, index) => {
+      if (action.variant === "danger" && index !== 0) {
+        nodes.push(
+          <ContextMenuSeparator
+            key={`context-separator-${action.key}`}
+            className="chat-action-separator"
+          />,
+        );
+      }
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    requestAnimationFrame(() => {
-      searchInputRef.current?.focus({ preventScroll: true });
+      nodes.push(
+        <ContextMenuItem
+          key={`context-${action.key}`}
+          className={cn("chat-action-item", action.variant && `chat-action-item--${action.variant}`)}
+          onSelect={() => {
+            action.handler();
+            setContextMenuOpen(false);
+          }}
+        >
+          {action.icon}
+          <span>{action.label}</span>
+          {action.shortcut ? (
+            <ContextMenuShortcut className="chat-action-shortcut">
+              {action.shortcut}
+            </ContextMenuShortcut>
+          ) : null}
+        </ContextMenuItem>,
+      );
     });
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    if (!filteredKeys.length) {
-      setSelectedKey(null);
-      return;
-    }
-
-    if (!selectedKey || !filteredKeys.includes(selectedKey)) {
-      setSelectedKey(filteredKeys[0] ?? null);
-    }
-  }, [filteredKeys, isOpen, selectedKey]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty("--neon-menu-hue1", hue1.toString());
-  }, [hue1]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty("--neon-menu-hue2", hue2.toString());
-  }, [hue2]);
+    return nodes;
+  };
 
   return (
-    <>
-      <span className="neon-context-menu-trigger" onContextMenu={handleContextMenu}>
-        {children}
-      </span>
-
-      <aside
-        ref={menuRef}
-        tabIndex={-1}
-        role="menu"
-        aria-hidden={!isOpen}
-        aria-label={`Actions for ${chatTitle}`}
-        className={`neon-context-menu${isOpen ? " open" : ""}`}
-        style={{ top: `${position.y}px`, left: `${position.x}px` }}
-        onKeyDown={handleMenuKeyDown}
-      >
-        <span className="shine shine-top" />
-        <span className="shine shine-bottom" />
-        <span className="glow glow-top" />
-        <span className="glow glow-bottom" />
-        <span className="glow glow-bright glow-top" />
-        <span className="glow glow-bright glow-bottom" />
-
-        <div className="inner">
-          <div className="neon-context-menu-content">
-            <div className="neon-context-menu-title">
-              <h2>{chatTitle || "Chat actions"}</h2>
-              <p>Right-click to open this menu anywhere inside the chat list.</p>
-            </div>
-
-            <label className="search">
-              <Search className="h-4 w-4" aria-hidden="true" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Type a command or search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-            </label>
-
-            {filteredSections.length > 0 ? (
-              filteredSections.map((section, index) => (
-                <Fragment key={section.id}>
-                  <section className={section.variant === "danger" ? "danger" : undefined}>
-                    <header>{section.label}</header>
-                    <ul role="none">
-                      {section.items.map((item) => (
-                        <li
-                          key={item.key}
-                          data-action-key={item.key}
-                          role="menuitem"
-                          tabIndex={-1}
-                          className={selectedKey === item.key ? "selected" : undefined}
-                          aria-selected={selectedKey === item.key}
-                          onMouseEnter={() => setSelectedKey(item.key)}
-                          onFocus={() => setSelectedKey(item.key)}
-                          onClick={() => handleActionSelect(item)}
-                        >
-                          {item.icon}
-                          <span>{item.label}</span>
-                          {item.meta ? <span className="meta">{item.meta}</span> : null}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                  {index < filteredSections.length - 1 ? <hr /> : null}
-                </Fragment>
-              ))
-            ) : (
-              <div data-empty-state>
-                No quick actions match “{searchTerm.trim() || "…"}”.
-              </div>
-            )}
-
-            <hr />
-
-            <footer className="neon-context-menu-footer">
-              <h3>Pick your own colors</h3>
-              <div className="neon-context-menu-slider-group">
-                <div className="neon-context-menu-slider">
-                  <span>Primary hue</span>
-                  <input
-                    id="neon-hue-1"
-                    type="range"
-                    min={0}
-                    max={360}
-                    value={hue1}
-                    onChange={(event) => setHue1(clampHue(Number(event.target.value)))}
-                  />
+    <ContextMenu onOpenChange={setContextMenuOpen}>
+      <div className="chat-context-wrapper" data-open={isMenuOpen ? "true" : "false"}>
+        <ContextMenuTrigger asChild>
+          <div className="chat-context-trigger">
+            {renderedTrigger}
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="chat-menu-trigger"
+                  onClick={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
+                >
+                  <MoreVertical className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">Open options for {chatTitle}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="chat-action-menu"
+              >
+                <div className="chat-action-heading">
+                  <span className="chat-action-heading-title">
+                    {chatTitle || "Untitled chat"}
+                  </span>
+                  <span className="chat-action-heading-subtitle">Quick actions</span>
                 </div>
-                <div className="neon-context-menu-slider">
-                  <span>Accent hue</span>
-                  <input
-                    id="neon-hue-2"
-                    type="range"
-                    min={0}
-                    max={360}
-                    value={hue2}
-                    onChange={(event) => setHue2(clampHue(Number(event.target.value)))}
-                  />
-                </div>
-              </div>
-            </footer>
+                <div className="chat-action-items">{renderDropdownItems()}</div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </div>
-      </aside>
-    </>
+        </ContextMenuTrigger>
+
+        <ContextMenuContent className="chat-action-menu">
+          <div className="chat-action-heading">
+            <span className="chat-action-heading-title">
+              {chatTitle || "Untitled chat"}
+            </span>
+            <span className="chat-action-heading-subtitle">Quick actions</span>
+          </div>
+          <div className="chat-action-items">{renderContextItems()}</div>
+        </ContextMenuContent>
+      </div>
+    </ContextMenu>
   );
 };

@@ -1,4 +1,5 @@
-import { Lock } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
+import "./PrivateChatIndicator.css";
 
 interface PrivateChatIndicatorProps {
   isPrivate: boolean;
@@ -8,16 +9,28 @@ export const PrivateChatIndicator = ({ isPrivate }: PrivateChatIndicatorProps) =
   if (!isPrivate) return null;
 
   return (
-    <div className="flex items-center justify-center gap-2 py-6 px-4 animate-fade-in">
-      <div className="relative">
-        <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full animate-pulse" />
-        <div className="relative flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-lg px-6 py-3">
-          <Lock className="h-5 w-5 text-orange-400 animate-pulse" />
-          <div className="flex flex-col">
-            <span className="text-orange-300 font-semibold text-sm">Incognito chat</span>
-            <span className="text-orange-200/70 text-xs">This chat isn't saved to history or used to train models.</span>
-          </div>
+    <div className="private-chat-indicator" role="status" aria-live="polite">
+      <div className="private-chat-orbit" aria-hidden="true" />
+      <div className="private-chat-card">
+        <div className="private-chat-icon">
+          <span className="private-chat-icon-glow" aria-hidden="true" />
+          <span className="private-chat-icon-inner">
+            <Lock className="private-chat-icon-lock" aria-hidden="true" />
+          </span>
         </div>
+
+        <div className="private-chat-copy">
+          <div className="private-chat-eyebrow">
+            <Sparkles className="private-chat-eyebrow-icon" aria-hidden="true" />
+            <span>Incognito mode</span>
+          </div>
+          <h3 className="private-chat-title">Greetings, whoever you are</h3>
+          <p className="private-chat-subcopy">
+            This conversation stays in the moment. Messages aren't stored or used to train models.
+          </p>
+        </div>
+
+        <span className="private-chat-pill">Private</span>
       </div>
     </div>
   );
