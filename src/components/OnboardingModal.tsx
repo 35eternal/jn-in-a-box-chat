@@ -48,6 +48,10 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
     onComplete(formData);
   };
 
+  const isStepComplete = () => {
+    return step === 4 || (step === 2 && formData.primaryGoals.length > 0);
+  };
+
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent 

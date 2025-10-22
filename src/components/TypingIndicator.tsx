@@ -6,19 +6,19 @@ interface TypingIndicatorProps {
 
 export const TypingIndicator = ({ avatarUrl }: TypingIndicatorProps) => {
   return (
-    <div className="flex gap-2 mb-4 animate-slide-in-left">
+    <div className="flex gap-3 mb-6 animate-slide-in-left">
       {avatarUrl && (
-        <Avatar className="h-8 w-8 shrink-0">
+        <Avatar className="h-10 w-10 shrink-0 flex-shrink-0">
           <AvatarImage src={avatarUrl} alt="AI Assistant" />
-          <AvatarFallback>AI</AvatarFallback>
+          <AvatarFallback className="bg-muted text-muted-foreground">AI</AvatarFallback>
         </Avatar>
       )}
       
-      <div className="bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-[10px_10px_10px_0] shadow-md backdrop-blur-sm">
+      <div className="bg-muted px-4 py-3 rounded-bl-lg rounded-br-lg shadow-md">
         <div className="flex gap-1">
-          <div className="w-2 h-2 rounded-full bg-white/60 animate-typing-bounce" style={{ animationDelay: "0ms" }} />
-          <div className="w-2 h-2 rounded-full bg-white/60 animate-typing-bounce" style={{ animationDelay: "200ms" }} />
-          <div className="w-2 h-2 rounded-full bg-white/60 animate-typing-bounce" style={{ animationDelay: "400ms" }} />
+          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing-bounce" style={{ animationDelay: "0ms" }} />
+          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing-bounce" style={{ animationDelay: "200ms" }} />
+          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing-bounce" style={{ animationDelay: "400ms" }} />
         </div>
       </div>
     </div>

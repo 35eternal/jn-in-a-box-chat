@@ -8,98 +8,101 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 174 100% 14%;
-    --foreground: 0 0% 100%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 174 45% 20%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 174 45% 20%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 164 65% 30%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 217.2 91.2% 60%;
+    --primary-foreground: 222.2 84% 4.9%;
 
-    --secondary: 174 30% 25%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
 
-    --muted: 174 20% 30%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 164 55% 35%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 174 30% 25%;
-    --input: 174 30% 25%;
-    --ring: 164 65% 50%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217.2 91.2% 59.8%;
 
     --radius: 0.625rem;
     
     /* Chat-specific colors */
-    --chat-bg-start: 174 100% 14%;
-    --chat-bg-end: 164 50% 24%;
-    --user-message-start: 153 60% 35%;
-    --user-message-end: 192 55% 35%;
-    --ai-message-bg: 0 0% 0% / 0.3;
-    --typing-dot: 0 0% 100% / 0.6;
+    --chat-bg-start: 0 0% 100%;
+    --chat-bg-end: 210 20% 98%;
+    --user-message-start: 217.2 91.2% 60%;
+    --user-message-end: 217.2 91.2% 70%;
+    --ai-message-bg: 217.2 10% 10% / 0.1;
+    --typing-dot: 217.2 91.2% 60% / 0.6;
 
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 217.2 91.2% 60%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 174 100% 14%;
-    --foreground: 0 0% 100%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 174 45% 20%;
-    --card-foreground: 0 0% 100%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 174 45% 20%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 164 65% 30%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 236 100% 61%;
+    --primary-foreground: 222.2 84% 4.9%;
 
-    --secondary: 174 30% 25%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 174 20% 30%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 164 55% 35%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 174 30% 25%;
-    --input: 174 30% 25%;
-    --ring: 164 65% 50%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 236 100% 61%;
+
+    --radius: 0.625rem;
     
-    --sidebar-background: 174 45% 15%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 164 65% 30%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 174 30% 25%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 174 30% 25%;
-    --sidebar-ring: 164 65% 50%;
+    /* Chat-specific colors */
+    --chat-bg-start: 222.2 84% 4.9%;
+    --chat-bg-end: 217.2 32.6% 17.5%;
+    --user-message-start: 236 100% 61%;
+    --user-message-end: 236 100% 71%;
+    --ai-message-bg: 217.2 10% 10% / 0.3;
+    --typing-dot: 236 100% 61% / 0.6;
+
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 236 100% 61%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 236 100% 61%;
   }
 }
 

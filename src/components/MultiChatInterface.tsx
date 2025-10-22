@@ -467,7 +467,7 @@ export const MultiChatInterface = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)]">
+    <div className="flex h-screen bg-background">
       <Sidebar
         currentChatId={currentChat?.id || null}
         onChatSelect={handleChatSelect}
@@ -479,26 +479,26 @@ export const MultiChatInterface = () => {
       <div className="flex-1 flex flex-col">
         {currentChat ? (
           <>
-            <div className="flex items-center justify-between bg-gradient-to-r from-[hsl(174,45%,20%)] to-[hsl(164,55%,25%)] px-4 py-3 border-b border-white/10 rounded-t-lg">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between bg-card border-b border-border px-6 py-4 shadow-sm">
+              <div className="flex items-center gap-4">
                 <img 
                   src={AVATAR_URL}
                   alt="HD-Physique"
-                  className="h-10 w-10 rounded-full"
+                  className="h-12 w-12 rounded-full shadow-md"
                   style={{
                     objectFit: 'cover',
                     objectPosition: 'center 20%'
                   }}
                 />
                 <div className="flex flex-col">
-                  <h2 className="text-white font-semibold text-base">HD-Physique</h2>
-                  <p className="text-white/70 text-xs">{isLoading ? "Thinking..." : "AI Assistant"}</p>
+                  <h2 className="text-foreground font-semibold text-lg">HD-Physique</h2>
+                  <p className="text-muted-foreground text-sm">{isLoading ? "Thinking..." : "AI Assistant"}</p>
                 </div>
               </div>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  <Button variant="outline" className="gap-2">
                     <>
                       <PrivateModeIcon className="h-4 w-4" />
                       {privateModeLabel}
@@ -506,20 +506,20 @@ export const MultiChatInterface = () => {
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuContent align="end" className="w-72">
                   <DropdownMenuItem
                     onClick={() => setIsPrivatePreference((prev) => !prev)}
-                    className="gap-3 cursor-pointer"
+                    className="gap-3 cursor-pointer flex items-start"
                   >
                     <input
                       type="checkbox"
                       checked={isPrivatePreference}
                       onChange={(event) => setIsPrivatePreference(event.target.checked)}
-                      className="cursor-pointer"
+                      className="mt-0.5 h-4 w-4 cursor-pointer rounded"
                     />
-                    <div>
-                      <div className="font-semibold">Start new chats in private mode</div>
-                      <div className="text-xs text-muted-foreground">
+                    <div className="flex-1">
+                      <div className="font-medium text-foreground">Start new chats in private mode</div>
+                      <div className="text-sm text-muted-foreground mt-1">
                         {isPrivateChat
                           ? "This conversation is incognito and won't be saved."
                           : "Current chat will be saved to history."}
@@ -531,7 +531,7 @@ export const MultiChatInterface = () => {
             </div>
 
             <div
-              className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 chat-scrollbar"
+              className="flex-1 overflow-y-auto p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6 chat-scrollbar"
               aria-label="Chat messages"
               aria-live="polite"
             >
@@ -540,9 +540,9 @@ export const MultiChatInterface = () => {
               
               {/* Show intro card for new chats */}
               {messages.length === 0 && showIntroCard && (
-                <div className="max-w-4xl mx-auto mt-8">
+                <div className="mt-12">
                   <ChatIntroCard />
-                  <div className="mt-8">
+                  <div className="mt-12">
                     <StarterQuestions onQuestionClick={handleQuestionClick} />
                   </div>
                 </div>
@@ -565,8 +565,8 @@ export const MultiChatInterface = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-3 md:p-4 border-t border-white/10 bg-[hsl(174,40%,16%)]">
-              <div className="flex gap-2 items-end">
+            <div className="p-6 border-t border-border bg-card/50">
+              <div className="flex gap-3 items-end max-w-4xl mx-auto">
                 <Textarea
                   ref={inputRef}
                   value={inputValue}
@@ -576,13 +576,14 @@ export const MultiChatInterface = () => {
                   disabled={isLoading || isSending}
                   aria-label="Type your message"
                   rows={1}
-                  className="flex-1 min-h-[44px] max-h-[120px] resize-none bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50 focus-visible:ring-2 focus-visible:ring-[hsl(164,65%,50%)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="flex-1 min-h-[44px] max-h-[200px] resize-none bg-muted border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg"
                 />
                 <Button
                   onClick={sendMessage}
                   disabled={isLoading || isSending || !inputValue.trim()}
                   aria-label="Send message"
-                  className="bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white active:scale-95 transition-transform duration-150 h-[44px] w-[44px] p-0"
+                  size="icon"
+                  className="h-12 w-12 shadow-lg hover:shadow-md transition-shadow duration-200"
                 >
                   {isSending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -594,19 +595,20 @@ export const MultiChatInterface = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-4">
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <h2 className="text-3xl font-bold text-foreground mb-6">
                 Welcome to HD Physique
               </h2>
-              <p className="text-white/70 mb-6">
+              <p className="text-xl text-muted-foreground mb-8">
                 Select a chat or create a new one to get started
               </p>
               <Button
                 onClick={handleNewChatSafe}
-                className="bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white"
+                size="lg"
+                className="gap-2 shadow-lg hover:shadow-xl transition-shadow duration-200"
               >
-                <Send className="h-4 w-4 mr-2" />
+                <Send className="h-4 w-4" />
                 Start New Chat
               </Button>
             </div>

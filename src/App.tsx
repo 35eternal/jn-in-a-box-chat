@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -39,30 +40,32 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <AdminAuthProvider>
-              <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/chat" replace />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route
-                    path="/chat"
-                    element={
-                      <ProtectedRoute>
-                        <Index />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route path="/admin" element={<Admin />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </ErrorBoundary>
-            </AdminAuthProvider>
-          </AuthProvider>
-        </BrowserRouter>
+        <ThemeProvider defaultTheme="system" enableSystem>
+          <BrowserRouter>
+            <AuthProvider>
+              <AdminAuthProvider>
+                <ErrorBoundary>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/chat" replace />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route
+                      path="/chat"
+                      element={
+                        <ProtectedRoute>
+                          <Index />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin" element={<Admin />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </ErrorBoundary>
+              </AdminAuthProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>

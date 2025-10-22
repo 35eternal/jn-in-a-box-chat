@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquarePlus, Settings, LogOut, ChevronLeft, Menu, RotateCcw, Loader2 } from 'lucide-react';
+import { MessageSquarePlus, Settings, LogOut, ChevronLeft, Menu, RotateCcw, Loader2, Monitor, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Chat, getUserChats, deleteChat, updateChatTitle } from '@/services/chatService';
 import { formatDistanceToNow } from 'date-fns';
 import { resetOnboarding } from '@/utils/onboardingHelpers';
@@ -41,6 +42,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize, refreshTrigger }: SidebarProps) => {
   const { user, signOut } = useAuth();
+  const { setTheme, theme } = useTheme();
   const [chats, setChats] = useState<Chat[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,12 +185,12 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
   if (isCollapsed) {
     return (
-      <div className="w-16 bg-[hsl(174,40%,14%)] border-r border-white/10 flex flex-col items-center py-4">
+      <div className="w-16 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-4">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsCollapsed(false)}
-          className="text-white hover:bg-white/10 mb-4"
+          className="text-sidebar-foreground hover:bg-sidebar-accent mb-4 transition-colors"
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -196,7 +198,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
           variant="ghost"
           size="icon"
           onClick={handleNewChat}
-          className="text-white hover:bg-white/10 mb-2"
+          className="text-sidebar-foreground hover:bg-sidebar-accent mb-2 transition-colors"
         >
           <MessageSquarePlus className="h-5 w-5" />
         </Button>
@@ -205,26 +207,26 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
   }
 
   return (
-    <div className="w-64 bg-[hsl(174,40%,14%)] border-r border-white/10 flex flex-col">
+    <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-xl">🏋️</span>
-            <h2 className="text-lg font-bold text-white">HD Physique</h2>
+            <h2 className="text-sidebar-foreground font-bold text-lg">HD Physique</h2>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(true)}
-            className="text-white hover:bg-white/10"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
         </div>
         <Button
           onClick={handleNewChat}
-          className="w-full bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white"
+          className="!w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-sm transition-colors"
         >
           <MessageSquarePlus className="h-4 w-4 mr-2" />
           New Chat
@@ -234,23 +236,23 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       {/* Chat List */}
       <ScrollArea className="flex-1 px-2">
         {isLoading && chats.length === 0 ? (
-          <div className="space-y-2 py-4">
+          <div className="space-y-4 py-8">
             {[1, 2, 3].map((i) => (
               <div key={i} className="px-2">
-                <div className="h-16 bg-white/5 rounded animate-pulse" />
+                <div className="h-12 bg-sidebar-accent/20 rounded-lg animate-pulse shadow-sm" />
               </div>
             ))}
           </div>
         ) : chats.length === 0 ? (
-          <div className="p-6 text-center">
-            <div className="text-white/50 mb-2">No chats yet</div>
-            <div className="text-white/30 text-xs">Create your first chat to get started</div>
+          <div className="p-8 text-center">
+            <div className="text-sidebar-foreground/60 text-lg mb-2 font-medium">No chats yet</div>
+            <div className="text-sidebar-muted-foreground text-sm">Create your first chat to get started</div>
           </div>
         ) : (
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
             {recent.length > 0 && (
               <div>
-                <h3 className="px-2 text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
+                <h3 className="px-2 text-xs font-semibold text-sidebar-muted-foreground uppercase tracking-wider mb-3">
                   Last 30 days
                 </h3>
                 <div className="space-y-1">
@@ -265,13 +267,13 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                       <Button
                         variant="ghost"
                         onClick={() => onChatSelect(chat.id)}
-                        className={`w-full justify-start text-left hover:bg-white/10 ${
-                          currentChatId === chat.id ? 'bg-white/10' : ''
+                        className={`w-full justify-start text-left hover:bg-sidebar-accent transition-colors ${
+                          currentChatId === chat.id ? 'bg-sidebar-accent shadow-md' : ''
                         }`}
                       >
                         <div className="flex-1 overflow-hidden">
-                          <div className="text-white text-sm truncate">{chat.title}</div>
-                          <div className="text-white/40 text-xs">
+                          <div className="text-sidebar-foreground font-medium text-sm truncate pr-2">{chat.title}</div>
+                          <div className="text-sidebar-muted-foreground text-xs">
                             {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
                           </div>
                         </div>
@@ -284,7 +286,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
             {older.length > 0 && (
               <div>
-                <h3 className="px-2 text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
+                <h3 className="px-2 text-xs font-semibold text-sidebar-muted-foreground uppercase tracking-wider mb-3">
                   Older
                 </h3>
                 <div className="space-y-1">
@@ -299,13 +301,13 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                       <Button
                         variant="ghost"
                         onClick={() => onChatSelect(chat.id)}
-                        className={`w-full justify-start text-left hover:bg-white/10 ${
-                          currentChatId === chat.id ? 'bg-white/10' : ''
+                        className={`w-full justify-start text-left hover:bg-sidebar-accent transition-colors ${
+                          currentChatId === chat.id ? 'bg-sidebar-accent shadow-md' : ''
                         }`}
                       >
                         <div className="flex-1 overflow-hidden">
-                          <div className="text-white text-sm truncate">{chat.title}</div>
-                          <div className="text-white/40 text-xs">
+                          <div className="text-sidebar-foreground font-medium text-sm truncate pr-2">{chat.title}</div>
+                          <div className="text-sidebar-muted-foreground text-xs">
                             {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
                           </div>
                         </div>
@@ -320,12 +322,12 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/10 space-y-2">
+      <div className="p-4 border-t border-sidebar-border space-y-3">
         <AdminAccessButton />
         <Button
           variant="ghost"
           onClick={onPersonalize}
-          className="w-full justify-start text-white hover:bg-white/10"
+          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
         >
           <Settings className="h-4 w-4 mr-2" />
           Personalize
@@ -344,21 +346,30 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
               }
             }
           }}
-          className="w-full justify-start text-white hover:bg-white/10"
+          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
         >
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset Tutorial
         </Button>
-        <Separator className="bg-white/10" />
+        <Separator className="bg-sidebar-border" />
+        <Button
+          variant="ghost"
+          onClick={() => setTheme(theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system')}
+          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+        >
+          {theme === 'system' ? <Monitor className="h-4 w-4 mr-2" /> : theme === 'light' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+          {theme === 'system' ? 'System' : theme.charAt(0).toUpperCase() + theme.slice(1)} Mode
+        </Button>
+        <Separator className="bg-sidebar-border" />
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-white truncate">{user?.email}</p>
+            <p className="text-sm text-sidebar-foreground truncate">{user?.email}</p>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleSignOut}
-            className="text-white hover:bg-white/10 ml-2"
+            className="text-sidebar-foreground hover:bg-sidebar-accent ml-2"
             title="Sign out"
             disabled={isSigningOut}
           >
@@ -373,16 +384,16 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
       {/* Rename Dialog */}
       <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-        <DialogContent className="bg-gradient-to-b from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)] border-white/10 text-white">
+        <DialogContent className="bg-sidebar border-sidebar-border text-sidebar-foreground max-w-md">
           <DialogHeader>
-            <DialogTitle>Rename Chat</DialogTitle>
-            <DialogDescription className="text-white/70">
+            <DialogTitle className="text-sidebar-foreground">Rename Chat</DialogTitle>
+            <DialogDescription className="text-sidebar-muted-foreground">
               Enter a new name for this chat
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="chat-title" className="text-white">
+              <Label htmlFor="chat-title" className="text-sidebar-foreground">
                 Chat Title
               </Label>
               <Input
@@ -390,7 +401,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                 value={newChatTitle}
                 onChange={(e) => setNewChatTitle(e.target.value)}
                 placeholder="Enter chat title"
-                className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50"
+                className="bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-muted-foreground"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleRenameSubmit();
@@ -407,13 +418,13 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                 setSelectedChatForRename(null);
                 setNewChatTitle('');
               }}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
             >
               Cancel
             </Button>
             <Button
               onClick={handleRenameSubmit}
-              className="bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white"
+              className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
             >
               Rename
             </Button>

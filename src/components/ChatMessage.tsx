@@ -35,94 +35,93 @@ export const ChatMessage = memo(({ message, isUser, timestamp, avatarUrl, status
     }
   };
 
-  return (
-    <div
-      className={`flex gap-2 mb-4 group ${isUser ? "justify-end" : "justify-start"} ${
-        isUser ? "animate-slide-in-right" : "animate-slide-in-left"
-      }`}
-    >
-      {!isUser && avatarUrl && (
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarImage src={avatarUrl} alt="AI Assistant" />
-          <AvatarFallback>AI</AvatarFallback>
-        </Avatar>
-      )}
-      
-      <div className="flex flex-col max-w-[85%] md:max-w-[75%]">
-        <div className="relative">
-          <div
-            className={`px-4 py-3 shadow-md backdrop-blur-sm transition-all duration-200 hover:shadow-lg ${
-              isUser
-                ? "bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] text-white rounded-[10px_10px_0_10px]"
-                : "bg-[rgba(0,0,0,0.3)] text-[rgba(255,255,255,0.9)] rounded-[10px_10px_10px_0]"
-            }`}
-          >
-            {isUser ? (
-              <p className="text-sm whitespace-pre-wrap break-words">{message}</p>
-            ) : (
-              <div className="text-sm">
-                <ReactMarkdown
-                  components={{
-                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                    em: ({ children }) => <em className="italic">{children}</em>,
-                    ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-                    li: ({ children }) => <li className="mb-1">{children}</li>,
-                  }}
-                >
-                  {message}
+    return (
+      <div
+        className={`flex gap-3 mb-6 group ${isUser ? "justify-end" : "justify-start"} ${
+          isUser ? "animate-slide-in-right" : "animate-slide-in-left"
+        }`}
+      >
+        {!isUser && avatarUrl && (
+          <Avatar className="h-10 w-10 shrink-0 flex-shrink-0">
+            <AvatarImage src={avatarUrl} alt="AI Assistant" />
+            <AvatarFallback className="bg-muted text-muted-foreground">AI</AvatarFallback>
+          </Avatar>
+        )}
+        
+        <div className="flex flex-col max-w-[80%] md:max-w-[70%]">
+          <div className="relative">
+            <div
+              className={`px-4 py-3 max-w-full rounded-lg shadow-md transition-all duration-300 hover:shadow-lg ${
+                isUser
+                  ? "bg-primary text-primary-foreground rounded-br-md rounded-tr-md"
+                  : "bg-muted text-foreground rounded-bl-md rounded-br-md"
+              }`}
+            >
+              {isUser ? (
+                <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message}</p>
+              ) : (
+                <div className="text-sm prose prose-sm max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                      em: ({ children }) => <em className="italic text-foreground/90">{children}</em>,
+                      ul: ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs">{children}</code>,
+                      pre: ({ children }) => <pre className="bg-muted p-3 rounded overflow-auto text-xs">{children}</pre>,
+                    }}
+                  >
+                    {message}
                 </ReactMarkdown>
+              )}
+            </div>
+            
+            {/* Copy button - shows on hover */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopy}
+              className={`absolute -top-2 right-0 opacity-0 group-hover:opacity-100 transition-all duration-200 h-6 w-6 p-0 bg-background hover:bg-muted text-foreground border border-border shadow-sm`}
+            >
+              {copied ? (
+                <Check className="h-3 w-3 text-primary" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </Button>
+          </div>
+          
+          <div className={`flex items-center gap-2 mt-2 ${isUser ? "justify-end" : "justify-start"}`}>
+            <span className="text-xs text-muted-foreground font-medium">
+              {timestamp}
+            </span>
+            
+            {isUser && status === 'sending' && (
+              <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+            )}
+            
+            {isUser && status === 'sent' && (
+              <CheckCircle2 className="h-3 w-3 text-primary" />
+            )}
+            
+            {isUser && status === 'error' && onRetry && (
+              <div className="flex items-center gap-1">
+                <AlertCircle className="h-3 w-3 text-destructive" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRetry}
+                  className="h-auto p-0 text-xs text-destructive hover:text-destructive/80 hover:bg-transparent"
+                >
+                  Retry
+                </Button>
               </div>
             )}
           </div>
-          
-          {/* Copy button - shows on hover */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            className={`absolute ${
-              isUser ? "-left-8" : "-right-8"
-            } top-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 bg-[rgba(0,0,0,0.5)] hover:bg-[rgba(0,0,0,0.7)] text-white border border-white/20`}
-          >
-            {copied ? (
-              <Check className="h-3 w-3" />
-            ) : (
-              <Copy className="h-3 w-3" />
-            )}
-          </Button>
-        </div>
-        
-        <div className={`flex items-center gap-2 mt-1 ${isUser ? "justify-end" : "justify-start"}`}>
-          <span className="text-xs text-muted-foreground animate-in fade-in duration-500 delay-300">
-            {timestamp}
-          </span>
-          
-          {isUser && status === 'sending' && (
-            <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
-          )}
-          
-          {isUser && status === 'sent' && (
-            <CheckCircle2 className="h-3 w-3 text-green-400" />
-          )}
-          
-          {isUser && status === 'error' && onRetry && (
-            <div className="flex items-center gap-1">
-              <AlertCircle className="h-3 w-3 text-red-400" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onRetry}
-                className="h-auto p-0 text-xs text-red-400 hover:text-red-300 hover:bg-transparent"
-              >
-                Retry
-              </Button>
-            </div>
-          )}
         </div>
       </div>
-    </div>
   );
 }, (prevProps, nextProps) => {
   return prevProps.message === nextProps.message &&
