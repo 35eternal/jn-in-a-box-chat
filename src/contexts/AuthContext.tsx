@@ -71,19 +71,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        authLogger.error('Failed to sign out', error);
-        throw error;
-      }
-      navigate('/login');
-    } catch (error) {
-      authLogger.error('Unexpected error during sign out', error);
+const signOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      authLogger.error('Failed to sign out', error);
       throw error;
     }
-  };
+    // Clear local state immediately
+    setUser(null);
+    setSession(null);
+    setLoading(false);
+    navigate('/login', { replace: true });
+  } catch (error) {
+    authLogger.error('Unexpected error during sign out', error);
+    throw error;
+  }
+};
 
   const value = {
     user,

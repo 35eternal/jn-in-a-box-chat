@@ -66,8 +66,12 @@ export async function addWebhook(
   url: string,
   priority: number = 0
 ): Promise<Webhook> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Add timed out after 10s')), 10000)
+  );
+
   try {
-    const { data, error } = await supabase
+    const promise = supabase
       .from('webhooks')
       .insert({
         name,
@@ -78,7 +82,10 @@ export async function addWebhook(
       .select()
       .single();
 
+    const { data, error } = await Promise.race([promise, timeoutPromise]);
+
     if (error) {
+      console.error('[WebhookService] Supabase error adding webhook:', error);
       throw new Error(`Failed to add webhook: ${error.message}`);
     }
 
@@ -88,7 +95,11 @@ export async function addWebhook(
 
     return data;
   } catch (error) {
-    console.error('[WebhookService] Error adding webhook:', error);
+    if (error.message.includes('timed out')) {
+      console.error('[WebhookService] Webhook add timed out after 10s');
+    } else {
+      console.error('[WebhookService] Error adding webhook:', error);
+    }
     throw error;
   }
 }
@@ -102,15 +113,22 @@ export async function updateWebhook(
   id: string,
   data: Partial<Omit<Webhook, 'id' | 'created_at' | 'updated_at'>>
 ): Promise<Webhook> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Update timed out after 10s')), 10000)
+  );
+
   try {
-    const { data: updatedData, error } = await supabase
+    const promise = supabase
       .from('webhooks')
       .update(data)
       .eq('id', id)
       .select()
       .single();
 
+    const { data: updatedData, error } = await Promise.race([promise, timeoutPromise]);
+
     if (error) {
+      console.error('[WebhookService] Supabase error updating webhook:', error);
       throw new Error(`Failed to update webhook: ${error.message}`);
     }
 
@@ -120,7 +138,11 @@ export async function updateWebhook(
 
     return updatedData;
   } catch (error) {
-    console.error('[WebhookService] Error updating webhook:', error);
+    if (error.message.includes('timed out')) {
+      console.error('[WebhookService] Webhook update timed out after 10s');
+    } else {
+      console.error('[WebhookService] Error updating webhook:', error);
+    }
     throw error;
   }
 }
@@ -130,17 +152,28 @@ export async function updateWebhook(
  * @param id - Webhook ID
  */
 export async function deleteWebhook(id: string): Promise<void> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Delete timed out after 10s')), 10000)
+  );
+
   try {
-    const { error } = await supabase
+    const promise = supabase
       .from('webhooks')
       .delete()
       .eq('id', id);
 
+    const { error } = await Promise.race([promise, timeoutPromise]);
+
     if (error) {
+      console.error('[WebhookService] Supabase error deleting webhook:', error);
       throw new Error(`Failed to delete webhook: ${error.message}`);
     }
   } catch (error) {
-    console.error('[WebhookService] Error deleting webhook:', error);
+    if (error.message.includes('timed out')) {
+      console.error('[WebhookService] Webhook delete timed out after 10s');
+    } else {
+      console.error('[WebhookService] Error deleting webhook:', error);
+    }
     throw error;
   }
 }
@@ -150,31 +183,46 @@ export async function deleteWebhook(id: string): Promise<void> {
  * @param id - Webhook ID
  */
 export async function toggleWebhookActive(id: string): Promise<Webhook> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Toggle timed out after 10s')), 10000)
+  );
+
+  let currentWebhook;
+
   try {
     // First, fetch the current webhook to get its active status
-    const { data: currentWebhook, error: fetchError } = await supabase
+    const fetchPromise = supabase
       .from('webhooks')
       .select('is_active')
       .eq('id', id)
       .single();
 
+    const fetchResult = await Promise.race([fetchPromise, timeoutPromise]);
+    const { data, error: fetchError } = fetchResult;
+
     if (fetchError) {
+      console.error('[WebhookService] Supabase error fetching webhook:', fetchError);
       throw new Error(`Failed to fetch webhook: ${fetchError.message}`);
     }
 
+    currentWebhook = data;
     if (!currentWebhook) {
       throw new Error('Webhook not found');
     }
 
     // Toggle the is_active status
-    const { data: updatedData, error: updateError } = await supabase
+    const updatePromise = supabase
       .from('webhooks')
       .update({ is_active: !currentWebhook.is_active })
       .eq('id', id)
       .select()
       .single();
 
+    const updateResult = await Promise.race([updatePromise, timeoutPromise]);
+    const { data: updatedData, error: updateError } = updateResult;
+
     if (updateError) {
+      console.error('[WebhookService] Supabase error toggling webhook active status:', updateError);
       throw new Error(`Failed to toggle webhook active status: ${updateError.message}`);
     }
 
@@ -184,7 +232,11 @@ export async function toggleWebhookActive(id: string): Promise<Webhook> {
 
     return updatedData;
   } catch (error) {
-    console.error('[WebhookService] Error toggling webhook active status:', error);
+    if (error.message.includes('timed out')) {
+      console.error('[WebhookService] Webhook toggle timed out after 10s');
+    } else {
+      console.error('[WebhookService] Error toggling webhook active status:', error);
+    }
     throw error;
   }
 }
