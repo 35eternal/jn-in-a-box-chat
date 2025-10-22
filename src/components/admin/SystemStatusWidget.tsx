@@ -69,24 +69,23 @@ export const SystemStatusWidget = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-white font-semibold">System Health</h3>
+        <h3 className="text-foreground font-semibold">System Health</h3>
         <Button
           onClick={refreshStatus}
           disabled={isRefreshing}
           variant="outline"
           size="sm"
-          className="border-white/20 text-white hover:bg-white/10"
         >
           {isRefreshing ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
           Refresh
         </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-[hsl(174,30%,20%)] border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon('supabase')}
-              <CardTitle className="text-sm text-white">Supabase DB</CardTitle>
+              <CardTitle className="text-sm text-foreground">Supabase DB</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -95,34 +94,34 @@ export const SystemStatusWidget = () => {
             </Badge>
           </CardContent>
         </Card>
-        <Card className="bg-[hsl(174,30%,20%)] border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon('webhooks')}
-              <CardTitle className="text-sm text-white">Active Webhooks</CardTitle>
+              <CardTitle className="text-sm text-foreground">Active Webhooks</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <Badge variant="default" className="text-xs bg-green-500/20 text-green-400">
+            <Badge variant="default" className="text-xs bg-destructive text-destructive-foreground">
               {status.webhooks.active} / {status.webhooks.total}
             </Badge>
           </CardContent>
         </Card>
-        <Card className="bg-[hsl(174,30%,20%)] border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon('performance')}
-              <CardTitle className="text-sm text-white">Performance</CardTitle>
+              <CardTitle className="text-sm text-foreground">Performance</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <Badge variant="default" className="text-xs bg-blue-500/20 text-blue-400">
+            <Badge variant="default" className="text-xs bg-primary text-primary-foreground">
               {status.performance}
             </Badge>
           </CardContent>
         </Card>
       </div>
-      <div className="text-xs text-white/50 text-center">
+      <div className="text-xs text-muted-foreground text-center">
         Last updated: {status.lastUpdated}
       </div>
     </div>

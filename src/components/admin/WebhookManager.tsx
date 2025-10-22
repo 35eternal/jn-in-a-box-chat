@@ -318,14 +318,14 @@ export const WebhookManager = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">Webhook Management</h2>
-          <p className="text-white/70 text-sm">
+          <h2 className="text-2xl font-bold text-foreground">Webhook Management</h2>
+          <p className="text-muted-foreground text-sm">
             Manage AI webhook endpoints with automatic failover
           </p>
         </div>
         <Button
           onClick={openAddDialog}
-          className="bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white"
+          variant="default"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Webhook
@@ -334,14 +334,13 @@ export const WebhookManager = () => {
 
       {/* Table */}
       {webhooks.length === 0 ? (
-        <Card className="bg-[hsl(174,30%,20%)] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6 text-center">
-            <LinkIcon className="mx-auto h-12 w-12 text-white/50 mb-4" />
-            <p className="text-white/70 mb-4">No webhooks configured yet</p>
+            <LinkIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">No webhooks configured yet</p>
             <Button
               onClick={openAddDialog}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add Your First Webhook
@@ -349,31 +348,31 @@ export const WebhookManager = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="rounded-lg border border-white/10 bg-[hsl(174,30%,20%)] overflow-hidden">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="text-white/90">Name</TableHead>
-                <TableHead className="text-white/90">URL</TableHead>
-                <TableHead className="text-white/90">Status</TableHead>
-                <TableHead className="text-white/90">Priority</TableHead>
-                <TableHead className="text-white/90">Created</TableHead>
-                <TableHead className="text-white/90 text-right">Actions</TableHead>
+              <TableRow className="border-border hover:bg-muted">
+                <TableHead className="text-foreground">Name</TableHead>
+                <TableHead className="text-foreground">URL</TableHead>
+                <TableHead className="text-foreground">Status</TableHead>
+                <TableHead className="text-foreground">Priority</TableHead>
+                <TableHead className="text-foreground">Created</TableHead>
+                <TableHead className="text-foreground text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {webhooks.map((webhook) => (
                 <TableRow
                   key={webhook.id}
-                  className="border-white/10 hover:bg-white/5 transition-colors"
+                  className="border-border hover:bg-muted transition-colors"
                 >
-                  <TableCell className="font-medium text-white">
+                  <TableCell className="font-medium text-foreground">
                     <div className="flex items-center gap-2">
-                      <LinkIcon className="h-4 w-4 text-white/50" />
+                      <LinkIcon className="h-4 w-4 text-muted-foreground" />
                       {webhook.name}
                     </div>
                   </TableCell>
-                  <TableCell className="text-white/70 max-w-xs truncate">
+                  <TableCell className="text-muted-foreground max-w-xs truncate">
                     {webhook.url}
                   </TableCell>
                   <TableCell>
@@ -381,27 +380,26 @@ export const WebhookManager = () => {
                       <Switch
                         checked={webhook.is_active}
                         onCheckedChange={() => handleToggleActive(webhook)}
-                        className="data-[state=checked]:bg-green-500"
                       />
                       <Badge
                         variant={webhook.is_active ? "default" : "secondary"}
                         className={
                           webhook.is_active
-                            ? "bg-green-500/20 text-green-400 border-green-500/30"
-                            : "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                            ? "bg-primary text-primary-foreground border-primary/30"
+                            : "bg-secondary text-secondary-foreground border-secondary"
                         }
                       >
                         {webhook.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                   </TableCell>
-                  <TableCell className="text-white/70">
+                  <TableCell className="text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <ArrowUp className="h-3 w-3" />
                       {webhook.priority}
                     </div>
                   </TableCell>
-                  <TableCell className="text-white/70">
+                  <TableCell className="text-muted-foreground">
                     {formatDate(webhook.created_at)}
                   </TableCell>
                   <TableCell className="text-right">
@@ -410,7 +408,6 @@ export const WebhookManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditDialog(webhook)}
-                        className="text-white/70 hover:text-white hover:bg-white/10"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -418,7 +415,7 @@ export const WebhookManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => openDeleteDialog(webhook)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        variant="destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -443,12 +440,12 @@ export const WebhookManager = () => {
           }
         }}
       >
-        <DialogContent className="bg-gradient-to-b from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)] border-white/10 text-white">
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader>
             <DialogTitle>
               {isEditDialogOpen ? "Edit Webhook" : "Add Webhook"}
             </DialogTitle>
-            <DialogDescription className="text-white/70">
+            <DialogDescription className="text-muted-foreground">
               {isEditDialogOpen
                 ? "Update the webhook configuration"
                 : "Add a new webhook endpoint for AI responses"}
@@ -456,7 +453,7 @@ export const WebhookManager = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white">
+              <Label htmlFor="name" className="text-foreground">
                 Name
               </Label>
               <Input
@@ -466,14 +463,14 @@ export const WebhookManager = () => {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="Primary AI Webhook"
-                className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
               />
               {formErrors.name && (
-                <p className="text-red-400 text-sm">{formErrors.name}</p>
+                <p className="text-destructive text-sm">{formErrors.name}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="url" className="text-white">
+              <Label htmlFor="url" className="text-foreground">
                 URL
               </Label>
               <Input
@@ -483,14 +480,14 @@ export const WebhookManager = () => {
                   setFormData({ ...formData, url: e.target.value })
                 }
                 placeholder="https://example.com/webhook"
-                className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
               />
               {formErrors.url && (
-                <p className="text-red-400 text-sm">{formErrors.url}</p>
+                <p className="text-destructive text-sm">{formErrors.url}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="priority" className="text-white">
+              <Label htmlFor="priority" className="text-foreground">
                 Priority (lower = higher priority)
               </Label>
               <Input
@@ -505,10 +502,10 @@ export const WebhookManager = () => {
                 }
                 placeholder="0"
                 min="0"
-                className="bg-[hsl(174,30%,20%)] border-white/20 text-white placeholder:text-white/50"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
               />
               {formErrors.priority && (
-                <p className="text-red-400 text-sm">{formErrors.priority}</p>
+                <p className="text-destructive text-sm">{formErrors.priority}</p>
               )}
             </div>
           </div>
@@ -521,14 +518,13 @@ export const WebhookManager = () => {
                 setSelectedWebhook(null);
                 resetForm();
               }}
-              className="border-white/20 text-white hover:bg-white/10"
             >
               Cancel
             </Button>
             <Button
               onClick={isEditDialogOpen ? handleEditWebhook : handleAddWebhook}
               disabled={isSubmitting}
-              className="bg-gradient-to-r from-[hsl(153,60%,35%)] to-[hsl(192,55%,35%)] hover:from-[hsl(153,60%,40%)] hover:to-[hsl(192,55%,40%)] text-white"
+              variant="default"
             >
               {isSubmitting ? (
                 <>
@@ -550,21 +546,21 @@ export const WebhookManager = () => {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
-        <AlertDialogContent className="bg-gradient-to-b from-[hsl(174,40%,18%)] to-[hsl(174,35%,15%)] border-white/10 text-white">
+        <AlertDialogContent className="bg-card border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/70">
+            <AlertDialogDescription className="text-muted-foreground">
               This will permanently delete the webhook "
               {selectedWebhook?.name}". This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
+            <AlertDialogCancel>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteWebhook}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
             >
               Delete
             </AlertDialogAction>
