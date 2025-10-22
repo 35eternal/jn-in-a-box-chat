@@ -74,7 +74,8 @@ export const ChatMessage = memo(({ message, isUser, timestamp, avatarUrl, status
                     }}
                   >
                     {message}
-                </ReactMarkdown>
+                  </ReactMarkdown>
+                </div>
               )}
             </div>
             
