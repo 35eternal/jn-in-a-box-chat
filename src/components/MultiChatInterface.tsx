@@ -10,16 +10,18 @@ import { StarterQuestions } from "./StarterQuestions";
 import { ChatIntroCard } from "./ChatIntroCard";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Send, Loader2, ChevronDown, Lock, Unlock } from "lucide-react";
+import { Send, Loader2, ChevronDown, Lock, Unlock, Moon, Sun, MessageSquarePlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   createChat,
   getChatById,
@@ -53,6 +55,7 @@ const AVATAR_URL = "https://i.postimg.cc/9DmTgNzj/image.png";
 
 export const MultiChatInterface = () => {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [currentChat, setCurrentChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -69,6 +72,10 @@ export const MultiChatInterface = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasAttemptedAutoCreate = useRef(false);
+
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
 
   const isPrivateChat = Boolean(currentChat?.is_private);
   const isPrivateModeActive = isPrivateChat || isPrivatePreference;
@@ -496,42 +503,54 @@ export const MultiChatInterface = () => {
                 </div>
               </div>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <>
-                      <PrivateModeIcon className="h-4 w-4" />
-                      {privateModeLabel}
-                    </>
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
-                  <DropdownMenuItem
-                    onClick={() => setIsPrivatePreference((prev) => !prev)}
-                    className="gap-3 cursor-pointer flex items-start"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isPrivatePreference}
-                      onChange={(event) => setIsPrivatePreference(event.target.checked)}
-                      className="mt-0.5 h-4 w-4 cursor-pointer rounded"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-foreground">Start new chats in private mode</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {isPrivateChat
-                          ? "This conversation is incognito and won't be saved."
-                          : "Current chat will be saved to history."}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleTheme}
+                  className="gap-2"
+                  aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+                >
+                  {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                      <>
+                        <PrivateModeIcon className="h-4 w-4" />
+                        {privateModeLabel}
+                      </>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuItem
+                      onClick={() => setIsPrivatePreference((prev) => !prev)}
+                      className="gap-3 cursor-pointer flex items-start"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isPrivatePreference}
+                        onChange={(event) => setIsPrivatePreference(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 cursor-pointer rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-foreground">Start new chats in private mode</div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {isPrivateChat
+                            ? "This conversation is incognito and won't be saved."
+                            : "Current chat will be saved to history."}
+                        </div>
                       </div>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
 
             <div
-              className="flex-1 overflow-y-auto p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6 chat-scrollbar"
+              className="flex-1 overflow-y-auto p-4 md:p-8 max-w-4xl mx-auto w-full space-y-8 chat-scrollbar bg-gradient-to-b from-[hsl(var(--chat-bg-start))] to-[hsl(var(--chat-bg-end))] dark:from-[hsl(var(--chat-bg-start))] dark:to-[hsl(var(--chat-bg-end))]"
               aria-label="Chat messages"
               aria-live="polite"
             >
@@ -540,9 +559,9 @@ export const MultiChatInterface = () => {
               
               {/* Show intro card for new chats */}
               {messages.length === 0 && showIntroCard && (
-                <div className="mt-12">
+                <div className="mt-16">
                   <ChatIntroCard />
-                  <div className="mt-12">
+                  <div className="mt-16">
                     <StarterQuestions onQuestionClick={handleQuestionClick} />
                   </div>
                 </div>
@@ -566,7 +585,7 @@ export const MultiChatInterface = () => {
             </div>
 
             <div className="p-6 border-t border-border bg-card/50">
-              <div className="flex gap-3 items-end max-w-4xl mx-auto">
+              <div className="flex gap-4 items-end max-w-4xl mx-auto">
                 <Textarea
                   ref={inputRef}
                   value={inputValue}
@@ -576,14 +595,14 @@ export const MultiChatInterface = () => {
                   disabled={isLoading || isSending}
                   aria-label="Type your message"
                   rows={1}
-                  className="flex-1 min-h-[44px] max-h-[200px] resize-none bg-muted border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg"
+                  className="flex-1 min-h-[48px] max-h-[200px] resize-none bg-card border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
                 />
                 <Button
                   onClick={sendMessage}
                   disabled={isLoading || isSending || !inputValue.trim()}
                   aria-label="Send message"
                   size="icon"
-                  className="h-12 w-12 shadow-lg hover:shadow-md transition-shadow duration-200"
+                  className="h-12 w-12 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground"
                 >
                   {isSending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -595,18 +614,21 @@ export const MultiChatInterface = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="text-center max-w-md">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+          <div className="flex-1 flex items-center justify-center p-12">
+            <div className="text-center max-w-lg">
+              <div className="w-24 h-24 mx-auto mb-6 p-6 bg-accent/20 rounded-full">
+                <MessageSquarePlus className="h-12 w-12 text-primary mx-auto" />
+              </div>
+              <h2 className="text-4xl font-bold text-foreground mb-4">
                 Welcome to HD Physique
               </h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Select a chat or create a new one to get started
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                Your personalized fitness AI coach is ready to help you achieve your goals. Select a chat or create a new one to get started.
               </p>
               <Button
                 onClick={handleNewChatSafe}
                 size="lg"
-                className="gap-2 shadow-lg hover:shadow-xl transition-shadow duration-200"
+                className="gap-3 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground px-8"
               >
                 <Send className="h-4 w-4" />
                 Start New Chat

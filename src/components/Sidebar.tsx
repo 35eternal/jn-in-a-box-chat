@@ -185,12 +185,12 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
   if (isCollapsed) {
     return (
-      <div className="w-16 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-4">
+      <div className="w-16 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-4 transition-all duration-300">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsCollapsed(false)}
-          className="text-sidebar-foreground hover:bg-sidebar-accent mb-4 transition-colors"
+          className="text-sidebar-foreground hover:bg-sidebar-accent hover:shadow-md transition-all duration-200 mb-4"
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -198,7 +198,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
           variant="ghost"
           size="icon"
           onClick={handleNewChat}
-          className="text-sidebar-foreground hover:bg-sidebar-accent mb-2 transition-colors"
+          className="text-sidebar-foreground hover:bg-primary hover:text-primary-foreground hover:shadow-md transition-all duration-200 mb-2"
         >
           <MessageSquarePlus className="h-5 w-5" />
         </Button>
@@ -207,26 +207,26 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
   }
 
   return (
-    <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col shadow-lg">
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-4 border-b border-sidebar-border bg-sidebar/50 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🏋️</span>
-            <h2 className="text-sidebar-foreground font-bold text-lg">HD Physique</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🏋️</span>
+            <h2 className="text-foreground font-bold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">HD Physique</h2>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(true)}
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
+            className="text-sidebar-foreground hover:bg-accent hover:shadow-md transition-all duration-200 rounded-lg"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
         </div>
         <Button
           onClick={handleNewChat}
-          className="!w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-sm transition-colors"
+          className="!w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg"
         >
           <MessageSquarePlus className="h-4 w-4 mr-2" />
           New Chat
@@ -236,27 +236,30 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       {/* Chat List */}
       <ScrollArea className="flex-1 px-2">
         {isLoading && chats.length === 0 ? (
-          <div className="space-y-4 py-8">
+          <div className="space-y-3 py-8 px-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="px-2">
-                <div className="h-12 bg-sidebar-accent/20 rounded-lg animate-pulse shadow-sm" />
+              <div key={i} className="px-3">
+                <div className="h-10 bg-accent/30 rounded-lg animate-pulse shadow-sm" />
               </div>
             ))}
           </div>
         ) : chats.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="text-sidebar-foreground/60 text-lg mb-2 font-medium">No chats yet</div>
-            <div className="text-sidebar-muted-foreground text-sm">Create your first chat to get started</div>
+            <div className="w-16 h-16 mx-auto mb-4 p-4 bg-accent/20 rounded-full">
+              <MessageSquarePlus className="h-8 w-8 text-muted-foreground mx-auto" />
+            </div>
+            <div className="text-foreground/60 text-lg mb-2 font-medium">No chats yet</div>
+            <div className="text-muted-foreground text-sm">Create your first chat to get started with your fitness journey</div>
           </div>
         ) : (
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 px-2">
             {recent.length > 0 && (
               <div>
-                <h3 className="px-2 text-xs font-semibold text-sidebar-muted-foreground uppercase tracking-wider mb-3">
+                <h3 className="px-3 py-2 text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-accent/50">
                   Last 30 days
                 </h3>
                 <div className="space-y-1">
-                  {recent.map((chat) => (
+                  {recent.map((chat, index) => (
                     <ChatContextMenu
                       key={chat.id}
                       chatId={chat.id}
@@ -267,16 +270,17 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                       <Button
                         variant="ghost"
                         onClick={() => onChatSelect(chat.id)}
-                        className={`w-full justify-start text-left hover:bg-sidebar-accent transition-colors ${
-                          currentChatId === chat.id ? 'bg-sidebar-accent shadow-md' : ''
+                        className={`w-full justify-start text-left px-3 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-[1.02] ${
+                          currentChatId === chat.id ? 'bg-primary text-primary-foreground shadow-lg border border-primary/20' : 'hover:bg-accent/70'
                         }`}
                       >
                         <div className="flex-1 overflow-hidden">
-                          <div className="text-sidebar-foreground font-medium text-sm truncate pr-2">{chat.title}</div>
-                          <div className="text-sidebar-muted-foreground text-xs">
+                          <div className="font-medium text-sm truncate pr-2">{chat.title}</div>
+                          <div className="text-xs opacity-75">
                             {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
                           </div>
                         </div>
+                        {currentChatId === chat.id && <div className="ml-2 w-1 h-4 bg-primary rounded-full" />}
                       </Button>
                     </ChatContextMenu>
                   ))}
@@ -286,7 +290,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
             {older.length > 0 && (
               <div>
-                <h3 className="px-2 text-xs font-semibold text-sidebar-muted-foreground uppercase tracking-wider mb-3">
+                <h3 className="px-3 py-2 text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-accent/50">
                   Older
                 </h3>
                 <div className="space-y-1">
@@ -301,16 +305,17 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                       <Button
                         variant="ghost"
                         onClick={() => onChatSelect(chat.id)}
-                        className={`w-full justify-start text-left hover:bg-sidebar-accent transition-colors ${
-                          currentChatId === chat.id ? 'bg-sidebar-accent shadow-md' : ''
+                        className={`w-full justify-start text-left px-3 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-[1.02] ${
+                          currentChatId === chat.id ? 'bg-primary text-primary-foreground shadow-lg border border-primary/20' : 'hover:bg-accent/70'
                         }`}
                       >
                         <div className="flex-1 overflow-hidden">
-                          <div className="text-sidebar-foreground font-medium text-sm truncate pr-2">{chat.title}</div>
-                          <div className="text-sidebar-muted-foreground text-xs">
+                          <div className="font-medium text-sm truncate pr-2">{chat.title}</div>
+                          <div className="text-xs opacity-75">
                             {formatDistanceToNow(new Date(chat.created_at), { addSuffix: true })}
                           </div>
                         </div>
+                        {currentChatId === chat.id && <div className="ml-2 w-1 h-4 bg-primary rounded-full" />}
                       </Button>
                     </ChatContextMenu>
                   ))}
@@ -322,12 +327,12 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-sidebar-border space-y-3">
+      <div className="p-4 border-t border-border space-y-3 bg-sidebar/50 backdrop-blur-sm">
         <AdminAccessButton />
         <Button
           variant="ghost"
           onClick={onPersonalize}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+          className="w-full justify-start text-foreground hover:bg-accent hover:shadow-md transition-all duration-200 rounded-lg px-3 py-2"
         >
           <Settings className="h-4 w-4 mr-2" />
           Personalize
@@ -346,30 +351,22 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
               }
             }
           }}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+          className="w-full justify-start text-foreground hover:bg-accent hover:shadow-md transition-all duration-200 rounded-lg px-3 py-2"
         >
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset Tutorial
         </Button>
-        <Separator className="bg-sidebar-border" />
-        <Button
-          variant="ghost"
-          onClick={() => setTheme(theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system')}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-        >
-          {theme === 'system' ? <Monitor className="h-4 w-4 mr-2" /> : theme === 'light' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-          {theme === 'system' ? 'System' : theme.charAt(0).toUpperCase() + theme.slice(1)} Mode
-        </Button>
-        <Separator className="bg-sidebar-border" />
+        <Separator className="bg-border" />
+        <Separator className="bg-border" />
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-sidebar-foreground truncate">{user?.email}</p>
+            <p className="text-sm text-foreground truncate">{user?.email}</p>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleSignOut}
-            className="text-sidebar-foreground hover:bg-sidebar-accent ml-2"
+            className="text-foreground hover:bg-accent hover:shadow-md transition-all duration-200 rounded-lg ml-2"
             title="Sign out"
             disabled={isSigningOut}
           >
@@ -384,16 +381,16 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
 
       {/* Rename Dialog */}
       <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-        <DialogContent className="bg-sidebar border-sidebar-border text-sidebar-foreground max-w-md">
+        <DialogContent className="bg-card border-border text-foreground max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-sidebar-foreground">Rename Chat</DialogTitle>
-            <DialogDescription className="text-sidebar-muted-foreground">
+            <DialogTitle className="text-foreground">Rename Chat</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Enter a new name for this chat
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="chat-title" className="text-sidebar-foreground">
+              <Label htmlFor="chat-title" className="text-foreground">
                 Chat Title
               </Label>
               <Input
@@ -401,7 +398,7 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                 value={newChatTitle}
                 onChange={(e) => setNewChatTitle(e.target.value)}
                 placeholder="Enter chat title"
-                className="bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-muted-foreground"
+                className="bg-muted border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleRenameSubmit();
@@ -418,13 +415,13 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
                 setSelectedChatForRename(null);
                 setNewChatTitle('');
               }}
-              className="border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+              className="border-input text-foreground hover:bg-accent"
             >
               Cancel
             </Button>
             <Button
               onClick={handleRenameSubmit}
-              className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Rename
             </Button>

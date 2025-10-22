@@ -6,19 +6,28 @@ interface TypingIndicatorProps {
 
 export const TypingIndicator = ({ avatarUrl }: TypingIndicatorProps) => {
   return (
-    <div className="flex gap-3 mb-6 animate-slide-in-left">
+    <div className="flex gap-4 mb-8 animate-slide-in-left">
       {avatarUrl && (
-        <Avatar className="h-10 w-10 shrink-0 flex-shrink-0">
+        <Avatar className="h-12 w-12 shrink-0 flex-shrink-0 order-first sm:order-last">
           <AvatarImage src={avatarUrl} alt="AI Assistant" />
-          <AvatarFallback className="bg-muted text-muted-foreground">AI</AvatarFallback>
+          <AvatarFallback className="bg-accent text-accent-foreground border border-accent/20">AI</AvatarFallback>
         </Avatar>
       )}
       
-      <div className="bg-muted px-4 py-3 rounded-bl-lg rounded-br-lg shadow-md">
-        <div className="flex gap-1">
-          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing-bounce" style={{ animationDelay: "0ms" }} />
-          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing-bounce" style={{ animationDelay: "200ms" }} />
-          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing-bounce" style={{ animationDelay: "400ms" }} />
+      <div className="bg-[hsl(var(--ai-message-bg))] px-5 py-4 rounded-bl-xl rounded-br-xl border border-accent/30 shadow-lg backdrop-blur-sm">
+        <div className="flex gap-1.5 items-center">
+          <div 
+            className="w-2.5 h-2.5 rounded-full bg-[hsl(var(--typing-dot))] animate-bounce" 
+            style={{ animationDelay: "0ms" }}
+          />
+          <div 
+            className="w-2.5 h-2.5 rounded-full bg-[hsl(var(--typing-dot))] animate-bounce [animation-delay:0.1s]" 
+            style={{ animationDelay: "100ms" }}
+          />
+          <div 
+            className="w-2.5 h-2.5 rounded-full bg-[hsl(var(--typing-dot))] animate-bounce [animation-delay:0.2s]" 
+            style={{ animationDelay: "200ms" }}
+          />
         </div>
       </div>
     </div>

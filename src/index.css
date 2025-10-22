@@ -9,51 +9,51 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222.2 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222.2 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222.2 47% 11%;
 
-    --primary: 217.2 91.2% 60%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary: 160 67% 44%; /* Green for light mode */
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary: 210 20% 98%;
+    --secondary-foreground: 222.2 47% 11%;
 
     --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 222.2 47% 11%;
 
     --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent-foreground: 222.2 47% 11%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217.2 91.2% 59.8%;
+    --ring: 160 71% 44%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
     
     /* Chat-specific colors */
     --chat-bg-start: 0 0% 100%;
-    --chat-bg-end: 210 20% 98%;
-    --user-message-start: 217.2 91.2% 60%;
-    --user-message-end: 217.2 91.2% 70%;
-    --ai-message-bg: 217.2 10% 10% / 0.1;
-    --typing-dot: 217.2 91.2% 60% / 0.6;
+    --chat-bg-end: 160 50% 98%;
+    --user-message-start: 160 67% 44%;
+    --user-message-end: 160 67% 54%;
+    --ai-message-bg: 210 20% 98% / 0.5;
+    --typing-dot: 160 67% 44% / 0.6;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 217.2 91.2% 60%;
-    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-background: 240 10% 98%;
+    --sidebar-foreground: 222.2 47% 11%;
+    --sidebar-primary: 160 67% 44%;
+    --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-accent-foreground: 222.2 47% 11%;
     --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 160 71% 44%;
   }
 
   .dark {
@@ -66,8 +66,8 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 236 100% 61%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary: 330 80% 65%; /* Pink for dark mode */
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -83,26 +83,26 @@ All colors MUST be HSL.
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 236 100% 61%;
+    --ring: 330 80% 65%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
     
     /* Chat-specific colors */
     --chat-bg-start: 222.2 84% 4.9%;
-    --chat-bg-end: 217.2 32.6% 17.5%;
-    --user-message-start: 236 100% 61%;
-    --user-message-end: 236 100% 71%;
-    --ai-message-bg: 217.2 10% 10% / 0.3;
-    --typing-dot: 236 100% 61% / 0.6;
+    --chat-bg-end: 330 30% 20%;
+    --user-message-start: 330 80% 65%;
+    --user-message-end: 330 80% 75%;
+    --ai-message-bg: 330 20% 25% / 0.3;
+    --typing-dot: 330 80% 65% / 0.6;
 
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 236 100% 61%;
-    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 330 80% 65%;
+    --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 236 100% 61%;
+    --sidebar-ring: 330 80% 65%;
   }
 }
 
@@ -111,27 +111,32 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-body {
-  @apply bg-background text-foreground;
-}
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 
 /* Custom scrollbar for chat */
 .chat-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .chat-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-transparent;
+  border-radius: 4px;
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  transition: background 0.2s;
+  @apply bg-muted/50 rounded-full transition-colors duration-200;
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  @apply bg-muted;
+}
+
+/* Smooth theme transition */
+html {
+  transition: color-scheme 0.2s ease, background-color 0.2s ease;
 }
 
 /* Slide animations for chat messages */
