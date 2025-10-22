@@ -427,6 +427,7 @@ const Login = () => {
                   <Input
                     id="confirm-password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

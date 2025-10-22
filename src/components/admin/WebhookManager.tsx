@@ -6,6 +6,7 @@ import {
   deleteWebhook,
   toggleWebhookActive,
   type Webhook,
+  type ServiceResponse,
 } from "@/services/webhookService";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -122,14 +123,28 @@ export const WebhookManager = () => {
 
     try {
       setIsSubmitting(true);
-      await addWebhook(formData.name, formData.url, formData.priority);
-      toast({
-        title: "Success",
-        description: "Webhook added successfully",
-      });
-      setIsAddDialogOpen(false);
-      resetForm();
-      loadWebhooks();
+      const result = await addWebhook(formData.name, formData.url, formData.priority) as ServiceResponse<Webhook>;
+      if (result.success && result.data) {
+        toast({
+          title: "Success",
+          description: "Webhook added successfully",
+        });
+        setIsAddDialogOpen(false);
+        resetForm();
+        loadWebhooks();
+      } else if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add webhook - unknown error",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -147,19 +162,33 @@ export const WebhookManager = () => {
 
     try {
       setIsSubmitting(true);
-      await updateWebhook(selectedWebhook.id, {
+      const result = await updateWebhook(selectedWebhook.id, {
         name: formData.name,
         url: formData.url,
         priority: formData.priority,
-      });
-      toast({
-        title: "Success",
-        description: "Webhook updated successfully",
-      });
-      setIsEditDialogOpen(false);
-      setSelectedWebhook(null);
-      resetForm();
-      loadWebhooks();
+      }) as ServiceResponse<Webhook>;
+      if (result.success && result.data) {
+        toast({
+          title: "Success",
+          description: "Webhook updated successfully",
+        });
+        setIsEditDialogOpen(false);
+        setSelectedWebhook(null);
+        resetForm();
+        loadWebhooks();
+      } else if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update webhook - unknown error",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -176,14 +205,28 @@ export const WebhookManager = () => {
     if (!selectedWebhook) return;
 
     try {
-      await deleteWebhook(selectedWebhook.id);
-      toast({
-        title: "Success",
-        description: "Webhook deleted successfully",
-      });
-      setIsDeleteDialogOpen(false);
-      setSelectedWebhook(null);
-      loadWebhooks();
+      const result = await deleteWebhook(selectedWebhook.id) as ServiceResponse<null>;
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Webhook deleted successfully",
+        });
+        setIsDeleteDialogOpen(false);
+        setSelectedWebhook(null);
+        loadWebhooks();
+      } else if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete webhook - unknown error",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -196,12 +239,26 @@ export const WebhookManager = () => {
 
   const handleToggleActive = async (webhook: Webhook) => {
     try {
-      await toggleWebhookActive(webhook.id);
-      toast({
-        title: "Success",
-        description: `Webhook ${webhook.is_active ? "deactivated" : "activated"}`,
-      });
-      loadWebhooks();
+      const result = await toggleWebhookActive(webhook.id) as ServiceResponse<Webhook>;
+      if (result.success && result.data) {
+        toast({
+          title: "Success",
+          description: `Webhook ${webhook.is_active ? "deactivated" : "activated"} successfully`,
+        });
+        loadWebhooks();
+      } else if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to toggle webhook status - unknown error",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
