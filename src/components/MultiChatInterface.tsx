@@ -69,6 +69,7 @@ export const MultiChatInterface = () => {
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasAttemptedAutoCreate = useRef(false);
@@ -183,7 +184,7 @@ export const MultiChatInterface = () => {
     }
   };
 
-  const handleNewChat = async () => {
+const handleNewChat = async () => {
     if (!user?.id) {
       toast({
         title: "Error",
@@ -218,7 +219,26 @@ export const MultiChatInterface = () => {
         const newChat = await createChat(user.id);
 
         if (!newChat) {
-          throw new Error('Failed to create chat. Please check your connection and try again.');
+          console.warn('Supabase chat creation failed, using demo mode');
+          // Fallback to demo chat
+          const demoChat: Chat = {
+            id: `demo-${Date.now()}`,
+            user_id: user.id,
+            title: 'Demo Chat',
+            personalization: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_private: false
+          };
+          setCurrentChat(demoChat);
+          setMessages([]);
+          setShowIntroCard(true);
+          setIsDemo(true);
+          toast({
+            title: "Demo Mode",
+            description: "Using demo chat (Supabase unavailable).",
+          });
+          return;
         }
 
         setCurrentChat(newChat);
@@ -233,10 +253,24 @@ export const MultiChatInterface = () => {
       }
     } catch (error: any) {
       console.error('Error creating chat:', error);
+      // Additional fallback for unexpected errors
+      const demoChat: Chat = {
+        id: `demo-${Date.now()}`,
+        user_id: user.id,
+        title: 'Demo Chat (Error Fallback)',
+        personalization: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_private: false
+      };
+      setCurrentChat(demoChat);
+      setMessages([]);
+      setShowIntroCard(true);
+      setIsDemo(true);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create chat. Please try again.",
-        variant: "destructive",
+        title: "Demo Mode Activated",
+        description: "Switched to demo chat due to error.",
+        variant: "default", // Not destructive, since we recovered
       });
     } finally {
       setIsCreatingChat(false);
@@ -361,13 +395,13 @@ export const MultiChatInterface = () => {
     setIsSending(true);
 
     try {
-      // Save user message to database (skip if private)
-      if (!currentChat.is_private) {
+      // Save user message to database (skip if private or demo)
+      if (!currentChat.is_private && !isDemo) {
         await createMessage(currentChat.id, "user", messageText);
       }
 
-      // If this is the first message, auto-generate chat title (skip if private)
-      if (messages.length === 0 && !currentChat.is_private) {
+      // If this is the first message, auto-generate chat title (skip if private or demo)
+      if (messages.length === 0 && !currentChat.is_private && !isDemo) {
         const title = generateChatTitle(messageText);
         await updateChatTitle(currentChat.id, title);
         setCurrentChat({ ...currentChat, title });
@@ -376,40 +410,46 @@ export const MultiChatInterface = () => {
       // Build system prompt with personalization
       const systemPrompt = buildSystemPrompt();
 
-      // Send to AI
-      const payload: {
-        dateCode: string;
-        message: string;
-        system_prompt: string;
-        user_id: string;
-        chat_id?: string;
-      } = {
-        dateCode: getDateCode(),
-        message: messageText,
-        system_prompt: systemPrompt,
-        user_id: user.id,
-      };
+      // Send to AI (demo mode uses a placeholder response for offline testing)
+      let aiResponse: string;
+      if (isDemo) {
+        // Placeholder for demo - in production, could integrate a local AI or mock
+        aiResponse = "Demo response: I'm your fitness coach in demo mode. Tell me about your goals!";
+      } else {
+        const payload: {
+          dateCode: string;
+          message: string;
+          system_prompt: string;
+          user_id: string;
+          chat_id?: string;
+        } = {
+          dateCode: getDateCode(),
+          message: messageText,
+          system_prompt: systemPrompt,
+          user_id: user.id,
+        };
 
-      if (!currentChat.is_private) {
-        payload.chat_id = currentChat.id;
+        if (!currentChat.is_private) {
+          payload.chat_id = currentChat.id;
+        }
+
+        const { data, error } = await supabase.functions.invoke("chat-proxy", {
+          body: payload,
+        });
+
+        if (error) {
+          throw new Error(error.message || "Failed to communicate with AI");
+        }
+
+        if (!data || !Array.isArray(data) || !data[0]?.output) {
+          throw new Error("Invalid response format");
+        }
+
+        aiResponse = data[0].output;
       }
 
-      const { data, error } = await supabase.functions.invoke("chat-proxy", {
-        body: payload,
-      });
-
-      if (error) {
-        throw new Error(error.message || "Failed to communicate with AI");
-      }
-
-      if (!data || !Array.isArray(data) || !data[0]?.output) {
-        throw new Error("Invalid response format");
-      }
-
-      const aiResponse = data[0].output;
-
-      // Save AI response to database (skip if private)
-      if (!currentChat.is_private) {
+      // Save AI response to database (skip if private or demo)
+      if (!currentChat.is_private && !isDemo) {
         await createMessage(currentChat.id, "assistant", aiResponse);
       }
 
@@ -438,7 +478,7 @@ export const MultiChatInterface = () => {
       );
 
       const errorMessage =
-        error instanceof Error
+        error instanceof Error && !isDemo
           ? error.message
           : "Failed to send message. Please try again.";
 
@@ -610,23 +650,23 @@ export const MultiChatInterface = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-12 bg-gradient-to-br from-background via-background to-accent/10">
-            <div className="text-center max-w-lg">
-              <div className="w-28 h-28 mx-auto mb-8 p-7 bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl shadow-lg">
-                <MessageSquarePlus className="h-14 w-14 text-primary mx-auto" />
+          <div className="flex-1 flex items-center justify-center p-8 md:p-12 bg-gradient-to-br from-background via-background/50 to-accent/20 min-h-0">
+            <div className="text-center max-w-md md:max-w-lg w-full px-4">
+              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-6 md:mb-8 p-6 md:p-7 bg-gradient-to-br from-primary/15 to-primary/5 rounded-3xl shadow-xl border border-primary/10">
+                <MessageSquarePlus className="h-12 w-12 md:h-14 md:w-14 text-primary mx-auto" />
               </div>
-              <h2 className="text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 bg-gradient-to-r from-primary via-accent to-secondary/70 bg-clip-text text-transparent leading-tight">
                 Welcome to HD Physique
               </h2>
-              <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
-                Your personalized fitness AI coach is ready to help you achieve your goals. Select a chat or create a new one to get started.
+              <p className="text-lg md:text-xl text-muted-foreground/90 mb-8 md:mb-10 leading-relaxed max-w-prose mx-auto">
+                Your personalized AI coach for fitness, training, and nutrition. Ready to help you build the physique you deserve.
               </p>
               <Button
                 onClick={handleNewChatSafe}
                 size="lg"
-                className="gap-3 shadow-xl hover:shadow-2xl active:scale-95 transition-all duration-300 bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground px-10 py-6 text-lg rounded-2xl"
+                className="gap-3 shadow-2xl hover:shadow-3xl active:scale-95 transition-all duration-300 bg-gradient-to-br from-primary via-primary/90 to-accent hover:from-primary/90 hover:via-accent/90 hover:to-secondary text-primary-foreground px-8 py-5 md:px-10 md:py-6 text-base md:text-lg rounded-2xl group"
               >
-                <MessageSquarePlus className="h-5 w-5" />
+                <MessageSquarePlus className="h-4 w-4 md:h-5 md:w-5 group-hover:scale-110 transition-transform duration-200" />
                 Start Your Journey
               </Button>
             </div>

@@ -49,7 +49,9 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedChatForRename, setSelectedChatForRename] = useState<Chat | null>(null);
   const [newChatTitle, setNewChatTitle] = useState('');
-  const [isSigningOut, setIsSigningOut] = useState(false);
+const [isSigningOut, setIsSigningOut] = useState(false);
+const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+const [chatToDelete, setChatToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -112,11 +114,15 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
     }
   };
 
-  const handleDeleteChat = async (chatId: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this chat? This action cannot be undone.');
-    if (!confirmed) return;
+  const handleDeleteChat = (chatId: string) => {
+    setChatToDelete(chatId);
+    setIsDeleteDialogOpen(true);
+  };
 
-    const success = await deleteChat(chatId);
+  const confirmDeleteChat = async () => {
+    if (!chatToDelete) return;
+
+    const success = await deleteChat(chatToDelete);
     if (success) {
       toast({
         title: "Success",
@@ -124,8 +130,8 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
       });
       
       // If we deleted the current chat, switch to a different one or create new
-      if (currentChatId === chatId) {
-        const remainingChats = chats.filter(c => c.id !== chatId);
+      if (currentChatId === chatToDelete) {
+        const remainingChats = chats.filter(c => c.id !== chatToDelete);
         if (remainingChats.length > 0) {
           onChatSelect(remainingChats[0].id);
         } else {
@@ -141,6 +147,8 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
         variant: "destructive",
       });
     }
+    setIsDeleteDialogOpen(false);
+    setChatToDelete(null);
   };
 
   const handleSignOut = async () => {
@@ -245,11 +253,20 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
           </div>
         ) : chats.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 p-4 bg-accent/20 rounded-full">
-              <MessageSquarePlus className="h-8 w-8 text-muted-foreground mx-auto" />
+            <div className="w-20 h-20 mx-auto mb-6 p-5 bg-gradient-to-br from-accent/20 to-primary/10 rounded-2xl shadow-lg border border-accent/30">
+              <MessageSquarePlus className="h-10 w-10 text-muted-foreground/70 mx-auto" />
             </div>
-            <div className="text-foreground/60 text-lg mb-2 font-medium">No chats yet</div>
-            <div className="text-muted-foreground text-sm">Create your first chat to get started with your fitness journey</div>
+            <div className="text-foreground/80 text-lg md:text-xl mb-3 font-semibold">No chats yet</div>
+            <div className="text-muted-foreground/80 text-sm md:text-base leading-relaxed max-w-xs mx-auto">Ready to start your fitness journey? Create your first chat and get personalized coaching.</div>
+            <Button
+              onClick={handleNewChat}
+              variant="outline"
+              size="sm"
+              className="mt-4 border-accent/50 hover:bg-accent/20 text-muted-foreground hover:text-foreground transition-all duration-200"
+            >
+              <MessageSquarePlus className="h-4 w-4 mr-2" />
+              Create First Chat
+            </Button>
           </div>
         ) : (
           <div className="space-y-6 py-4 px-2">
@@ -428,6 +445,29 @@ export const Sidebar = ({ currentChatId, onChatSelect, onNewChat, onPersonalize,
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-card border-border text-foreground max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete this chat? This action cannot be undone and will also delete all messages in the conversation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-input text-foreground hover:bg-accent">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteChat}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
