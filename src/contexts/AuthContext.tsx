@@ -49,6 +49,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Redirect to login if no user after loading
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login', { replace: true });
+    }
+  }, [loading, user, navigate]);
+
   // Create user record in database if it doesn't exist
   const createUserIfNotExists = async (user: User) => {
     const { error } = await supabase

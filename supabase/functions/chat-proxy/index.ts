@@ -125,10 +125,18 @@ serve(async (req) => {
     let lastError: Error | null = null;
 
     for (const webhook of webhooks) {
+      let timeoutId: number | undefined;
+      const controller = new AbortController();
+      
       try {
         console.log(
           `[chat-proxy] [${requestId}] Invoking webhook ${webhook.id} (priority ${webhook.priority})`,
         );
+
+        timeoutId = setTimeout(() => {
+          console.warn(`[chat-proxy] [${requestId}] Webhook ${webhook.id} timed out after 30s`);
+          controller.abort();
+        }, 30000);
 
         const response = await fetch(webhook.url, {
           method: "POST",
@@ -140,7 +148,11 @@ serve(async (req) => {
             chat_id: chat_id ?? null,
             user_id,
           }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -162,6 +174,10 @@ serve(async (req) => {
         console.log(`[chat-proxy] [${requestId}] Webhook ${webhook.id} succeeded`);
         return jsonResponse(200, payload);
       } catch (webhookError) {
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId);
+        }
+        
         lastError = webhookError instanceof Error ? webhookError : new Error(String(webhookError));
         console.error(
           `[chat-proxy] [${requestId}] Webhook ${webhook.id} failed`,
@@ -170,8 +186,15 @@ serve(async (req) => {
       }
     }
 
-    console.error(`[chat-proxy] [${requestId}] All webhooks failed`);
-    throw lastError ?? new Error("All AI services are currently unavailable.");
+    if (lastError) {
+      console.error(`[chat-proxy] [${requestId}] All webhooks failed`, lastError.message);
+      
+      const fallbackPayload = [{
+        output: "I'm sorry, but our AI service is temporarily unavailable. Please check your connection and try again shortly. If the issue persists, active webhooks may need attention from an administrator."
+      }];
+      
+      return jsonResponse(200, fallbackPayload);
+    }
   } catch (error) {
     console.error(`[chat-proxy] [${requestId}] Fatal error`, error instanceof Error ? error.message : error);
     return jsonResponse(500, {
