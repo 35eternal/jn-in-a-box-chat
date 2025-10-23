@@ -38,27 +38,27 @@ export const ChatMessage = memo(({ message, isUser, timestamp, avatarUrl, status
   const MessageContent = isUser ? (
     <p className="text-sm whitespace-pre-wrap break-words leading-relaxed mb-2">{message}</p>
   ) : (
-    <div className="text-sm prose prose-sm max-w-none prose-headings:text-white prose-strong:font-semibold prose-code:bg-[rgba(0,0,0,.4)] prose-pre:bg-[rgba(0,0,0,.4)] prose-a:text-[#248A52] hover:prose-a:text-[#257287]">
+    <div className="text-sm prose prose-sm max-w-none prose-headings:text-foreground prose-strong:font-semibold prose-code:bg-muted prose-pre:bg-muted prose-a:text-primary hover:prose-a:text-primary/80">
       <ReactMarkdown
         components={{
           p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed">{children}</p>,
           strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-          em: ({ children }) => <em className="italic text-white/90">{children}</em>,
+          em: ({ children }) => <em className="italic opacity-90">{children}</em>,
           ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
           code: ({ children }: { children: React.ReactNode }) => (
-            <code className="bg-[rgba(0,0,0,.4)] px-2 py-1 rounded text-xs font-mono border">{children}</code>
+            <code className="bg-muted px-2 py-1 rounded text-xs font-mono border border-border">{children}</code>
           ),
           pre: ({ children }) => (
-            <pre className="bg-[rgba(0,0,0,.4)] p-4 rounded-lg overflow-auto text-xs font-mono border my-4">
+            <pre className="bg-muted p-4 rounded-lg overflow-auto text-xs font-mono border border-border my-4">
               {children}
             </pre>
           ),
           a: ({ children, href }) => (
             <a 
               href={href} 
-              className="text-[#248A52] hover:text-[#257287] underline underline-offset-2 transition-colors"
+              className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -98,7 +98,7 @@ export const ChatMessage = memo(({ message, isUser, timestamp, avatarUrl, status
           variant="ghost"
           size="sm"
           onClick={handleCopy}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 bg-[rgba(0,0,0,.3)] hover:bg-[rgba(0,0,0,.5)] text-white border border-white/20 rounded"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 bg-muted hover:bg-accent border border-border rounded"
         >
           {copied ? (
             <Check className="h-3 w-3" />
@@ -111,13 +111,13 @@ export const ChatMessage = memo(({ message, isUser, timestamp, avatarUrl, status
             variant="ghost"
             size="sm"
             onClick={onRetry}
-            className="mt-1 text-xs text-[#ff6b6b] hover:text-[#ff6b6b]/80 bg-[rgba(255,107,107,0.1)] rounded px-2 py-1"
+            className="mt-1 text-xs text-destructive hover:text-destructive/80 bg-destructive/10 rounded px-2 py-1"
           >
             Retry
           </Button>
         )}
         {isUser && status === 'sent' && (
-          <CheckCircle2 className="absolute top-2 left-2 h-3 w-3 text-[#248A52]" />
+          <CheckCircle2 className="absolute top-2 left-2 h-3 w-3 text-primary" />
         )}
       </div>
       <div className="timestamp">{timestamp}</div>
