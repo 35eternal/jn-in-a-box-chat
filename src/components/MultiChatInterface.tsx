@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChatHeader } from "./ChatHeader";
 import { ChatMessage } from "./ChatMessage";
-import { TypingIndicator } from "./TypingIndicator";
 import { PrivateChatIndicator } from "./PrivateChatIndicator";
 import { Sidebar } from "./Sidebar";
 import { PersonalizationModal } from "./PersonalizationModal";
@@ -17,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Send, Loader2, ChevronDown, Lock, Unlock, Moon, Sun, MessageSquarePlus } from "lucide-react";
+import { Send, Loader2, ChevronDown, Lock, Unlock, Moon, Sun, MessageSquarePlus, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +40,7 @@ import { hasCompletedOnboarding, completeOnboarding, getUserMetadata } from "@/s
 import { ensureUserExists } from "@/services/diagnostics";
 import { testSupabaseConnection } from "@/services/connectionTest";
 import { forceCompleteOnboarding } from "@/utils/onboardingHelpers";
+import './chat-new.css';
 
 interface Message {
   id: string;
