@@ -97,10 +97,6 @@ export const MultiChatInterface = () => {
   useEffect(() => {
     const checkOnboarding = async () => {
       if (user) {
-        // Run connection test first
-        console.log('Running Supabase connection test...');
-        await testSupabaseConnection();
-        
         const completed = await hasCompletedOnboarding(user.id);
         if (!completed) {
           setOnboardingOpen(true);
@@ -486,12 +482,12 @@ export const MultiChatInterface = () => {
       <div className="flex-1 flex flex-col">
         {currentChat ? (
           <>
-            <div className="flex items-center justify-between bg-card border-b border-border px-6 py-4 shadow-sm">
+            <div className="flex items-center justify-between bg-gradient-to-r from-card to-card/95 border-b border-border px-6 py-4 shadow-md backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <img 
                   src={AVATAR_URL}
                   alt="HD-Physique"
-                  className="h-12 w-12 rounded-full shadow-md"
+                  className="h-12 w-12 rounded-full shadow-lg ring-2 ring-primary/20"
                   style={{
                     objectFit: 'cover',
                     objectPosition: 'center 20%'
@@ -584,7 +580,7 @@ export const MultiChatInterface = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-6 border-t border-border bg-card/50">
+            <div className="p-6 border-t border-border bg-gradient-to-t from-card to-card/50 backdrop-blur-sm">
               <div className="flex gap-4 items-end max-w-4xl mx-auto">
                 <Textarea
                   ref={inputRef}
@@ -595,43 +591,43 @@ export const MultiChatInterface = () => {
                   disabled={isLoading || isSending}
                   aria-label="Type your message"
                   rows={1}
-                  className="flex-1 min-h-[48px] max-h-[200px] resize-none bg-card border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                  className="flex-1 min-h-[52px] max-h-[200px] resize-none bg-card border-2 border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-2xl shadow-sm hover:shadow-md focus-visible:shadow-lg"
                 />
                 <Button
                   onClick={sendMessage}
                   disabled={isLoading || isSending || !inputValue.trim()}
                   aria-label="Send message"
                   size="icon"
-                  className="h-12 w-12 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground"
+                  className="h-14 w-14 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground rounded-2xl"
                 >
                   {isSending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    <Send className="h-4 w-4" />
+                    <Send className="h-5 w-5" />
                   )}
                 </Button>
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-12">
+          <div className="flex-1 flex items-center justify-center p-12 bg-gradient-to-br from-background via-background to-accent/10">
             <div className="text-center max-w-lg">
-              <div className="w-24 h-24 mx-auto mb-6 p-6 bg-accent/20 rounded-full">
-                <MessageSquarePlus className="h-12 w-12 text-primary mx-auto" />
+              <div className="w-28 h-28 mx-auto mb-8 p-7 bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl shadow-lg">
+                <MessageSquarePlus className="h-14 w-14 text-primary mx-auto" />
               </div>
-              <h2 className="text-4xl font-bold text-foreground mb-4">
+              <h2 className="text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 Welcome to HD Physique
               </h2>
-              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+              <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
                 Your personalized fitness AI coach is ready to help you achieve your goals. Select a chat or create a new one to get started.
               </p>
               <Button
                 onClick={handleNewChatSafe}
                 size="lg"
-                className="gap-3 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground px-8"
+                className="gap-3 shadow-xl hover:shadow-2xl active:scale-95 transition-all duration-300 bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground px-10 py-6 text-lg rounded-2xl"
               >
-                <Send className="h-4 w-4" />
-                Start New Chat
+                <MessageSquarePlus className="h-5 w-5" />
+                Start Your Journey
               </Button>
             </div>
           </div>

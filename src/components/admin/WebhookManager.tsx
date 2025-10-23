@@ -415,7 +415,7 @@ export const WebhookManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => openDeleteDialog(webhook)}
-                        variant="destructive"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -560,7 +560,7 @@ export const WebhookManager = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteWebhook}
-              variant="destructive"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
