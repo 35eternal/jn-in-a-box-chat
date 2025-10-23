@@ -518,74 +518,71 @@ const handleNewChat = async () => {
         refreshTrigger={refreshTrigger}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 md:ml-64 w-full">
         {currentChat ? (
-          <>
-            <div className="flex items-center justify-between bg-gradient-to-r from-card to-card/95 border-b border-border px-6 py-4 shadow-md backdrop-blur-sm">
-              <div className="flex items-center gap-4">
-                <img 
-                  src={AVATAR_URL}
-                  alt="HD-Physique"
-                  className="h-12 w-12 rounded-full shadow-lg ring-2 ring-primary/20"
-                  style={{
-                    objectFit: 'cover',
-                    objectPosition: 'center 20%'
-                  }}
-                />
-                <div className="flex flex-col">
-                  <h2 className="text-foreground font-semibold text-lg">HD-Physique</h2>
-                  <p className="text-muted-foreground text-sm">{isLoading ? "Thinking..." : "AI Assistant"}</p>
+          <div className="flex flex-col h-screen w-full max-w-md mx-auto my-4 rounded-3xl shadow-2xl bg-black/50 overflow-hidden md:max-w-none md:mx-0 md:my-0 md:shadow-none md:bg-transparent">
+              <div className="flex items-center justify-between bg-black/20 border-b border-white/10 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={AVATAR_URL}
+                    alt="HD-Physique"
+                    className="h-10 w-10 rounded-full border-2 border-white/20"
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: 'center 20%'
+                    }}
+                  />
+                  <div className="flex flex-col">
+                    <h2 className="text-white font-normal text-base uppercase tracking-wide">HD Physique</h2>
+                    <p className="text-white/60 text-xs">{isLoading ? "Thinking..." : "Fitness Coach"}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="h-8 w-8 p-0 bg-white/10 hover:bg-white/20 text-white border-white/20"
+                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+                  >
+                    {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" /> }
+                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 px-2 bg-white/10 hover:bg-white/20 text-white border-white/20 gap-1">
+                        <PrivateModeIcon className="h-4 w-4" />
+                        <span className="text-xs">{privateModeLabel}</span>
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64 bg-black/90 border-white/10 text-white">
+                      <DropdownMenuItem
+                        onClick={() => setIsPrivatePreference((prev) => !prev)}
+                        className="gap-3 cursor-pointer flex items-start text-white hover:bg-white/10"
+                      >
+                        <Switch
+                          checked={isPrivatePreference}
+                          onCheckedChange={(checked) => setIsPrivatePreference(checked)}
+                          className="data-[state=checked]:bg-[#248A52]"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium">Private mode for new chats</div>
+                          <div className="text-sm text-white/70 mt-1">
+                            {isPrivateChat
+                              ? "Conversations not saved to history."
+                              : "Chats will be saved normally."}
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="gap-2"
-                  aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-                >
-                  {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                </Button>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <>
-                        <PrivateModeIcon className="h-4 w-4" />
-                        {privateModeLabel}
-                      </>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72">
-                    <DropdownMenuItem
-                      onClick={() => setIsPrivatePreference((prev) => !prev)}
-                      className="gap-3 cursor-pointer flex items-start"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isPrivatePreference}
-                        onChange={(event) => setIsPrivatePreference(event.target.checked)}
-                        className="mt-0.5 h-4 w-4 cursor-pointer rounded"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-foreground">Start new chats in private mode</div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {isPrivateChat
-                            ? "This conversation is incognito and won't be saved."
-                            : "Current chat will be saved to history."}
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
 
             <div
-              className="flex-1 overflow-y-auto p-4 md:p-8 max-w-4xl mx-auto w-full space-y-8 chat-scrollbar bg-gradient-to-b from-[hsl(var(--chat-bg-start))] to-[hsl(var(--chat-bg-end))] dark:from-[hsl(var(--chat-bg-start))] dark:to-[hsl(var(--chat-bg-end))]"
+              className="flex-1 overflow-y-auto p-4 space-y-4 chat-scrollbar"
               aria-label="Chat messages"
               aria-live="polite"
             >
@@ -594,7 +591,7 @@ const handleNewChat = async () => {
               
               {/* Show intro card for new chats */}
               {messages.length === 0 && showIntroCard && (
-                <div className="mt-16">
+                <div className="py-16 text-center text-white/70">
                   <ChatIntroCard />
                   <div className="mt-16">
                     <StarterQuestions onQuestionClick={handleQuestionClick} />
@@ -614,13 +611,20 @@ const handleNewChat = async () => {
                 />
               ))}
 
-              {isLoading && <TypingIndicator avatarUrl={AVATAR_URL} />}
+              {isLoading && (
+                <div className="message loading new">
+                  <figure className="avatar">
+                    <img src={AVATAR_URL} alt="AI Assistant" />
+                  </figure>
+                  <span></span>
+                </div>
+              )}
 
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-6 border-t border-border bg-gradient-to-t from-card to-card/50 backdrop-blur-sm">
-              <div className="flex gap-4 items-end max-w-4xl mx-auto">
+            <div className="p-4 border-t border-white/10 bg-black/30 backdrop-blur-sm">
+              <div className="flex gap-2 items-end w-full">
                 <Textarea
                   ref={inputRef}
                   value={inputValue}
@@ -630,43 +634,44 @@ const handleNewChat = async () => {
                   disabled={isLoading || isSending}
                   aria-label="Type your message"
                   rows={1}
-                  className="flex-1 min-h-[52px] max-h-[200px] resize-none bg-card border-2 border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-2xl shadow-sm hover:shadow-md focus-visible:shadow-lg"
+                  className="flex-1 min-h-[40px] max-h-[100px] resize-none bg-transparent border-none text-white placeholder:text-white/70 focus-visible:outline-none focus-visible:ring-0 text-sm font-normal rounded-lg p-3"
                 />
                 <Button
                   onClick={sendMessage}
                   disabled={isLoading || isSending || !inputValue.trim()}
                   aria-label="Send message"
-                  size="icon"
-                  className="h-14 w-14 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground rounded-2xl"
+                  size="sm"
+                  className="h-10 px-4 text-xs uppercase font-semibold bg-[#248A52] hover:bg-[#1D7745] text-white rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   {isSending ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
-                    <Send className="h-5 w-5" />
+                    <Send className="h-4 w-4 mr-2" />
                   )}
+                  Send
                 </Button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-8 md:p-12 bg-gradient-to-br from-background via-background/50 to-accent/20 min-h-0">
-            <div className="text-center max-w-md md:max-w-lg w-full px-4">
-              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-6 md:mb-8 p-6 md:p-7 bg-gradient-to-br from-primary/15 to-primary/5 rounded-3xl shadow-xl border border-primary/10">
-                <MessageSquarePlus className="h-12 w-12 md:h-14 md:w-14 text-primary mx-auto" />
+          <div className="flex-1 flex items-center justify-center p-8 bg-black/30 rounded-2xl md:rounded-none">
+            <div className="text-center max-w-sm w-full px-4">
+              <div className="w-20 h-20 mx-auto mb-6 p-5 bg-black/20 rounded-2xl border border-white/10">
+                <MessageSquarePlus className="h-10 w-10 text-[#248A52] mx-auto" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 bg-gradient-to-r from-primary via-accent to-secondary/70 bg-clip-text text-transparent leading-tight">
+              <h2 className="text-2xl font-bold text-white mb-4">
                 Welcome to HD Physique
               </h2>
-              <p className="text-lg md:text-xl text-muted-foreground/90 mb-8 md:mb-10 leading-relaxed max-w-prose mx-auto">
+              <p className="text-sm text-white/80 mb-6 leading-relaxed">
                 Your personalized AI coach for fitness, training, and nutrition. Ready to help you build the physique you deserve.
               </p>
               <Button
                 onClick={handleNewChatSafe}
                 size="lg"
-                className="gap-3 shadow-2xl hover:shadow-3xl active:scale-95 transition-all duration-300 bg-gradient-to-br from-primary via-primary/90 to-accent hover:from-primary/90 hover:via-accent/90 hover:to-secondary text-primary-foreground px-8 py-5 md:px-10 md:py-6 text-base md:text-lg rounded-2xl group"
+                className="gap-2 bg-gradient-to-r from-[#248A52] to-[#257287] hover:from-[#1D7745] text-white px-6 py-3 rounded-lg font-semibold shadow-lg"
               >
-                <MessageSquarePlus className="h-4 w-4 md:h-5 md:w-5 group-hover:scale-110 transition-transform duration-200" />
-                Start Your Journey
+                <MessageSquarePlus className="h-4 w-4" />
+                Start Chat
               </Button>
             </div>
           </div>
